@@ -5,7 +5,7 @@ import { config } from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 
-// Phải có thư viện dotenv để đọc file .env
+// Phải có thư viện dotenv để chắc chắn đọc được file .env
 config({
   path: path.resolve('.env'),
 })
@@ -32,7 +32,6 @@ class ConfigSchema {
 const configServer = plainToInstance(ConfigSchema, process.env)
 
 const errorsArray = validateSync(configServer)
-console.log(process.env)
 
 if (errorsArray.length > 0) {
   console.log('Các giá trị khai báo trong file .env không hợp lệ')
