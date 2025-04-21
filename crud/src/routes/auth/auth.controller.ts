@@ -1,5 +1,12 @@
 import { Body, Controller, Post, SerializeOptions, UnprocessableEntityException } from '@nestjs/common'
-import { LoginBodyDTO, LoginResponseDTO, RegisterBodyDTO, RegisterResponseDTO } from 'src/routes/auth/auth.dto'
+import {
+  LoginBodyDTO,
+  LoginResponseDTO,
+  RefreshTokenBodyDTO,
+  RefreshTokenResponseDTO,
+  RegisterBodyDTO,
+  RegisterResponseDTO,
+} from 'src/routes/auth/auth.dto'
 import { AuthService } from 'src/routes/auth/auth.service'
 
 @Controller('auth')
@@ -25,6 +32,15 @@ export class AuthController {
     const result = await this.authService.login(body)
 
     return new LoginResponseDTO({
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    })
+  }
+
+  @Post('refresh-token')
+  async refreshToken(@Body() body: RefreshTokenBodyDTO): Promise<RefreshTokenResponseDTO> {
+    const result = await this.authService.refreshToken(body.refreshToken)
+    return new RefreshTokenResponseDTO({
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
     })

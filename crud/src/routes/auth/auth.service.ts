@@ -116,4 +116,43 @@ export class AuthService {
       refreshToken,
     }
   }
+
+  async refreshToken(refreshToken: string) {
+    try {
+      // 1. Verify refresh token
+      const decodedRefreshToken = await this.tokenService.verifyRefreshToken(refreshToken)
+
+      // 2. Check if refresh token exists in database
+      await this.prismaService.refreshToken.findUniqueOrThrow({
+        where: {
+          token: refreshToken,
+        },
+      })
+
+      // 3. Delete old refresh token
+      await this.prismaService.refreshToken.delete({
+        where: {
+          token: refreshToken,
+        },
+      })
+
+      // Generate access token and refresh token
+      return await this.generateToken(decodedRefreshToken.userId)
+    } catch (error) {
+      console.log(error)
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+        // P2025: Record to delete does not exist.
+        throw new UnauthorizedException(
+          {
+            message: 'Refresh token has been revoked or does not exist',
+          },
+          {
+            cause: error,
+            description: 'Refresh token does not exist',
+          },
+        )
+      }
+      throw new UnauthorizedException()
+    }
+  }
 }

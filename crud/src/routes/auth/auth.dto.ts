@@ -44,3 +44,18 @@ export class RegisterResponseDTO {
     Object.assign(this, partial)
   }
 }
+
+export class RefreshTokenBodyDTO {
+  @IsString()
+  @IsNotEmpty()
+  refreshToken: string
+}
+
+export class RefreshTokenResponseDTO {
+  accessToken: string
+  refreshToken: string
+
+  constructor(partial: Partial<RefreshTokenResponseDTO>) {
+    Object.assign(this, partial)
+  }
+}
