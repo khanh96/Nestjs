@@ -12,6 +12,6 @@ export class AuthController {
   async register(@Body() body: RegisterBodyDTO): Promise<RegisterResponseDTO> {
     // console.log(body)
     const result = await this.authService.register(body)
-    return result.result
+    return new RegisterResponseDTO(result.result)
   }
 }
