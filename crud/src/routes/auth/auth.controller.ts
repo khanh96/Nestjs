@@ -1,5 +1,5 @@
-import { Body, Controller, Post, SerializeOptions } from '@nestjs/common'
-import { RegisterBodyDTO, RegisterResponseDTO } from 'src/routes/auth/auth.dto'
+import { Body, Controller, Post, SerializeOptions, UnprocessableEntityException } from '@nestjs/common'
+import { LoginBodyDTO, LoginResponseDTO, RegisterBodyDTO, RegisterResponseDTO } from 'src/routes/auth/auth.dto'
 import { AuthService } from 'src/routes/auth/auth.service'
 
 @Controller('auth')
@@ -11,7 +11,22 @@ export class AuthController {
   @Post('register')
   async register(@Body() body: RegisterBodyDTO): Promise<RegisterResponseDTO> {
     // console.log(body)
+    if (body.password !== body.confirmPassword) {
+      throw new UnprocessableEntityException({
+        message: 'Password and confirm password do not match',
+      })
+    }
     const result = await this.authService.register(body)
     return new RegisterResponseDTO(result.result)
+  }
+
+  @Post('login')
+  async login(@Body() body: LoginBodyDTO): Promise<LoginResponseDTO> {
+    const result = await this.authService.login(body)
+
+    return new LoginResponseDTO({
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    })
   }
 }
