@@ -18,11 +18,6 @@ export class AuthController {
   @Post('register')
   async register(@Body() body: RegisterBodyDTO): Promise<RegisterResponseDTO> {
     // console.log(body)
-    if (body.password !== body.confirmPassword) {
-      throw new UnprocessableEntityException({
-        message: 'Password and confirm password do not match',
-      })
-    }
     const result = await this.authService.register(body)
     return new RegisterResponseDTO(result.result)
   }

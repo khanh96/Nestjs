@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer'
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator'
+import { Match } from 'src/shared/custom-validator'
 
 export class LoginBodyDTO {
   @IsEmail()
@@ -21,6 +22,9 @@ export class LoginResponseDTO {
 export class RegisterBodyDTO extends LoginBodyDTO {
   @IsString()
   name: string
+  @Match('password', {
+    message: 'Password confirmation does not match password',
+  })
   @IsString()
   confirmPassword: string
 }
