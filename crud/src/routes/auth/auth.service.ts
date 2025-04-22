@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
 import { PrismaClientKnownRequestError } from 'generated/prisma/runtime/library'
 import { LoginBodyDTO } from 'src/routes/auth/auth.dto'
+import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { HashingService } from 'src/shared/services/hashing/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 import { TokenService } from 'src/shared/services/token/token.service'
@@ -38,7 +39,7 @@ export class AuthService {
         message: 'Register successfully',
       }
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+      if (isUniqueConstraintPrismaError(error)) {
         // P2002: Unique constraint failed on the fields: (`email`)
         throw new ConflictException(
           {
@@ -140,7 +141,7 @@ export class AuthService {
       return await this.generateToken(decodedRefreshToken.userId)
     } catch (error) {
       console.log(error)
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (isNotFoundPrismaError(error)) {
         // P2025: Record to delete does not exist.
         throw new UnauthorizedException(
           {

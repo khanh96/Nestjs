@@ -1,6 +1,6 @@
 import { Exclude } from 'class-transformer'
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator'
-import { Match } from 'src/shared/custom-validator'
+import { Match } from 'src/shared/decorators/custom-validator'
 
 export class LoginBodyDTO {
   @IsEmail()

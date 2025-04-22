@@ -1,4 +1,4 @@
-import { Body, Controller, Post, SerializeOptions, UnprocessableEntityException } from '@nestjs/common'
+import { Body, Controller, Post, SerializeOptions } from '@nestjs/common'
 import {
   LoginBodyDTO,
   LoginResponseDTO,
