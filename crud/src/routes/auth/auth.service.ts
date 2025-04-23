@@ -102,8 +102,8 @@ export class AuthService {
     ])
     // Save refresh token to database
     const decodedRefreshToken = await this.tokenService.verifyRefreshToken(refreshToken)
-    console.log('refreshToken', refreshToken)
-    console.log('decodedRefreshToken', decodedRefreshToken)
+    // console.log('refreshToken', refreshToken)
+    // console.log('decodedRefreshToken', decodedRefreshToken)
     await this.prismaService.refreshToken.create({
       data: {
         userId: userId,

@@ -11,7 +11,7 @@ export class AccessTokenGuard implements CanActivate {
     const request = ctx.getRequest<Request>()
     const authorizationHeader = request.headers['authorization']
     const accessToken = typeof authorizationHeader === 'string' ? authorizationHeader.split(' ')[1] : null // Extract the token from the Authorization header
-    console.log('request=>', accessToken)
+    // console.log('request=>', accessToken)
 
     // Check if the token is present
     if (!accessToken) {
@@ -20,9 +20,9 @@ export class AccessTokenGuard implements CanActivate {
     // Check if the token is valid
     try {
       const { userId } = await this.tokenService.verifyAccessToken(accessToken)
-      console.log('userId=>', userId)
+      //   console.log('userId=>', userId)
       request[REQUEST_USER_KEY] = userId // Attach the user ID to the request object for later use
-      console.log('request[REQUEST_USER_KEY]=>', request)
+      //   console.log('request[REQUEST_USER_KEY]=>', request)
       return true
     } catch (error) {
       throw new UnauthorizedException({

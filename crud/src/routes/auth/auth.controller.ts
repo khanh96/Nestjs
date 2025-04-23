@@ -33,7 +33,7 @@ export class AuthController {
     })
   }
 
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   @Post('refresh-token')
   async refreshToken(@Body() body: RefreshTokenBodyDTO): Promise<RefreshTokenResponseDTO> {
     const result = await this.authService.refreshToken(body.refreshToken)

@@ -11,8 +11,8 @@ export function Match(property: string, validationOptions?: ValidationOptions) {
       options: validationOptions,
       validator: {
         validate(value: any, args: ValidationArguments) {
-          console.log(value, args)
-          console.log(args)
+          // console.log(value, args)
+          // console.log(args)
           // value là giá trị của propertyName (confỉmPassword)
           // args.object là giá trị của object truyền vào (RegisterBodyDTO)
           // args.constraints là các giá trị truyền vào từ decorator (password)
