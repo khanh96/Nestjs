@@ -1,20 +1,25 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { PostsService } from 'src/routes/posts/posts.service'
 import { AuthType, ConditionGuard } from 'src/shared/constants/auth.constant'
 import { Auth } from 'src/shared/decorators/auth.decorator'
-import { AuthenticationGuard } from 'src/shared/guards/authentication.guard'
+// import { AuthenticationGuard } from 'src/shared/guards/authentication.guard'
 // import { APIKeyGuard } from 'src/shared/guards/api-key.guard'
+import { Request } from 'express'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
+import { TokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
-  @Auth([AuthType.Bearer, AuthType.APIKey], { condition: ConditionGuard.AND })
+  @Auth([AuthType.Bearer, AuthType.APIKey], { condition: ConditionGuard.OR })
   // @UseGuards(AuthenticationGuard)
   // @UseGuards(AccessTokenGuard)
   // @UseGuards(APIKeyGuard)
+  //@Auth([AuthType.Bearer])
   @Get()
-  getPosts() {
+  getPosts(@ActiveUser() tokenPayload: TokenPayload) {
+    console.log('tokenPayload', tokenPayload)
     return this.postsService.getPosts()
   }
 

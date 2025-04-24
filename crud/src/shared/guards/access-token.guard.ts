@@ -19,9 +19,8 @@ export class AccessTokenGuard implements CanActivate {
     }
     // Check if the token is valid
     try {
-      const { userId } = await this.tokenService.verifyAccessToken(accessToken)
-      //   console.log('userId=>', userId)
-      request[REQUEST_USER_KEY] = userId // Attach the user ID to the request object for later use
+      const decodedAccessToken = await this.tokenService.verifyAccessToken(accessToken)
+      request[REQUEST_USER_KEY] = decodedAccessToken // Attach the user ID to the request object for later use
       //   console.log('request[REQUEST_USER_KEY]=>', request)
       return true
     } catch (error) {
