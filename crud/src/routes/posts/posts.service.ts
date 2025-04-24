@@ -20,9 +20,22 @@ export class PostsService {
     },
   ]
 
-  getPosts() {
-    return this.prismaService.post.findMany()
-    // return this.posts
+  getPosts(userId: number) {
+    return this.prismaService.post.findMany({
+      where: {
+        authorId: userId,
+      },
+      // include này như kiểu join trong SQL
+      // lấy thêm thông tin của author
+      // omit là loại bỏ các trường không cần thiết
+      include: {
+        author: {
+          omit: {
+            password: true,
+          },
+        },
+      },
+    })
   }
 
   getPostById(id: string) {
@@ -31,7 +44,7 @@ export class PostsService {
     // return posts.find((post) => post.id === parseInt(id))
   }
 
-  createPost(body: { title: string; content: string }) {
+  createPost(body: { title: string; content: string }, userId: number) {
     // const posts = this.getPosts()
     // const newPost = {
     //   id: posts.length + 1,
@@ -43,7 +56,7 @@ export class PostsService {
       data: {
         title: body.title,
         content: body.content,
-        authorId: 1,
+        authorId: userId,
       },
     })
     // return newPost
