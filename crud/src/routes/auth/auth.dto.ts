@@ -63,3 +63,11 @@ export class RefreshTokenResponseDTO {
     Object.assign(this, partial)
   }
 }
+
+export class LogoutResponseDTO {
+  message: string
+
+  constructor(partial: Partial<LogoutResponseDTO>) {
+    Object.assign(this, partial)
+  }
+}

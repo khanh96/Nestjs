@@ -2,6 +2,7 @@ import { Body, Controller, Post, SerializeOptions, UseGuards } from '@nestjs/com
 import {
   LoginBodyDTO,
   LoginResponseDTO,
+  LogoutResponseDTO,
   RefreshTokenBodyDTO,
   RefreshTokenResponseDTO,
   RegisterBodyDTO,
@@ -41,5 +42,12 @@ export class AuthController {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
     })
+  }
+
+  @Post('logout')
+  async logout(@Body() body: RefreshTokenBodyDTO): Promise<LogoutResponseDTO> {
+    const result = await this.authService.logout(body.refreshToken)
+
+    return new LogoutResponseDTO(result)
   }
 }

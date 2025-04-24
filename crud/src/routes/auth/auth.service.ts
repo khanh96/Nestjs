@@ -156,4 +156,44 @@ export class AuthService {
       throw new UnauthorizedException()
     }
   }
+
+  async logout(refreshToken: string) {
+    try {
+      // 1. Verify refresh token
+      await this.tokenService.verifyRefreshToken(refreshToken)
+
+      // 2. Check if refresh token exists in database
+      await this.prismaService.refreshToken.findUniqueOrThrow({
+        where: {
+          token: refreshToken,
+        },
+      })
+
+      // 3. Delete  refresh token
+      await this.prismaService.refreshToken.delete({
+        where: {
+          token: refreshToken,
+        },
+      })
+
+      return {
+        message: 'Logout successfully',
+      }
+    } catch (error) {
+      console.log(error)
+      if (isNotFoundPrismaError(error)) {
+        // P2025: Record to delete does not exist.
+        throw new UnauthorizedException(
+          {
+            message: 'Refresh token has been revoked or does not exist',
+          },
+          {
+            cause: error,
+            description: 'Refresh token does not exist',
+          },
+        )
+      }
+      throw new UnauthorizedException()
+    }
+  }
 }
