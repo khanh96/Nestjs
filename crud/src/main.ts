@@ -12,9 +12,9 @@ async function bootstrap() {
       whitelist: true, // Tự động loại bỏ các thuộc tính không có trong DTO
       forbidNonWhitelisted: true, // Ném lỗi nếu có thuộc tính không có trong DTO
       transform: true, // Tự động chuyển đổi kiểu dữ liệu được khai báo trong DTO
-      transformOptions: {
-        enableImplicitConversion: true, // Tự động chuyển đổi kiểu dữ liệu được khai báo trong DTO (123 => '123')
-      },
+      // transformOptions: {
+      //   enableImplicitConversion: true, // Tự động chuyển đổi kiểu dữ liệu được khai báo trong DTO (123 => '123')
+      // },
       exceptionFactory: (errors) => {
         return new UnprocessableEntityException(
           {

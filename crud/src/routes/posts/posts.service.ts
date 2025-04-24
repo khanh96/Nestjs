@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { CreatePostBodyDTO } from 'src/routes/posts/post.dto'
+import { isNotFoundPrismaError } from 'src/shared/helpers'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 @Injectable()
@@ -38,62 +40,90 @@ export class PostsService {
     })
   }
 
-  getPostById(id: string) {
-    // const posts = this.getPosts()
-    return this.prismaService.post.findUnique({ where: { id: parseInt(id) } })
-    // return posts.find((post) => post.id === parseInt(id))
+  async getPostById(id: number) {
+    try {
+      const result = await this.prismaService.post.findUniqueOrThrow({
+        where: { id: id },
+        include: {
+          author: {
+            omit: {
+              password: true,
+            },
+          },
+        },
+      })
+      return result
+    } catch (error) {
+      if (isNotFoundPrismaError(error)) {
+        throw new NotFoundException(`Post with id ${id} not found`, {
+          cause: error,
+        })
+      }
+      throw error
+    }
   }
 
-  createPost(body: { title: string; content: string }, userId: number) {
-    // const posts = this.getPosts()
-    // const newPost = {
-    //   id: posts.length + 1,
-    //   title: body.title,
-    //   content: body.content,
-    // }
-    // posts.push(newPost)
-    return this.prismaService.post.create({
+  async createPost(body: CreatePostBodyDTO, userId: number) {
+    const result = await this.prismaService.post.create({
       data: {
         title: body.title,
         content: body.content,
         authorId: userId,
       },
-    })
-    // return newPost
-  }
-
-  updatePost(id: string, body: { title: string; content: string }) {
-    // const posts = this.getPosts()
-    // const postIndex = posts.findIndex((post) => post.id === parseInt(id))
-    // console.log(posts)
-    // if (postIndex !== -1) {
-    //   posts[postIndex] = { ...posts[postIndex], ...body }
-    //   return posts[postIndex]
-    // }
-    return this.prismaService.post.update({
-      where: { id: parseInt(id) },
-      data: {
-        title: body.title,
-        content: body.content,
-        authorId: 1,
+      include: {
+        author: {
+          omit: {
+            password: true,
+          },
+        },
       },
     })
-    // return null
+    return result
   }
 
-  async deletePost(id: string) {
-    // const posts = this.getPosts()
-    // const postIndex = posts.findIndex((post) => post.id === parseInt(id))
-    // if (postIndex !== -1) {
-    //   posts.splice(postIndex, 1)
-    //   return { message: 'Post deleted successfully' }
-    // }
-    // return null
+  async updatePost({ postId, body, userId }: { postId: number; body: CreatePostBodyDTO; userId: number }) {
+    console.log('updatePost', { postId, body, userId })
+    try {
+      const result = await this.prismaService.post.update({
+        where: { id: postId, authorId: userId },
+        data: {
+          title: body.title,
+          content: body.content,
+          authorId: userId,
+        },
+        include: {
+          author: {
+            omit: {
+              password: true,
+            },
+          },
+        },
+      })
+      return result
+    } catch (error) {
+      if (isNotFoundPrismaError(error)) {
+        throw new NotFoundException(`Post with id ${postId} not found`, {
+          cause: error,
+        })
+      }
+      throw error
+    }
+  }
 
-    const result = await this.prismaService.post.delete({
-      where: { id: parseInt(id) },
-    })
+  async deletePost(id: number, userId: number) {
+    try {
+      const result = await this.prismaService.post.delete({
+        where: { id: id, authorId: userId },
+      })
 
-    return { result: result, message: 'Post deleted successfully' }
+      return { result: result, message: 'Post deleted successfully' }
+    } catch (error) {
+      if (isNotFoundPrismaError(error)) {
+        throw new NotFoundException(`Post with id ${id} not found`, {
+          cause: error,
+        })
+      }
+      throw error
+    }
   }
 }

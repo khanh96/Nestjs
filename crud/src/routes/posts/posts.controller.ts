@@ -7,7 +7,7 @@ import { Auth } from 'src/shared/decorators/auth.decorator'
 import { Request } from 'express'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { TokenPayload } from 'src/shared/types/jwt.type'
-import { PostResponseDTO } from 'src/routes/posts/post.dto'
+import { CreatePostBodyDTO, GetPostItemResponseDTO, UpdatePostBodyDTO } from 'src/routes/posts/post.dto'
 
 @Controller('posts')
 export class PostsController {
@@ -19,32 +19,43 @@ export class PostsController {
   // @UseGuards(APIKeyGuard)
   //@Auth([AuthType.Bearer])
   @Get()
-  async getPosts(@ActiveUser() tokenPayload: TokenPayload): Promise<PostResponseDTO[]> {
+  async getPosts(@ActiveUser() tokenPayload: TokenPayload): Promise<GetPostItemResponseDTO[]> {
     const { userId } = tokenPayload
     const result = await this.postsService.getPosts(userId)
-    const response = result.map((item) => new PostResponseDTO(item))
+    const response = result.map((item) => new GetPostItemResponseDTO(item))
     return response
   }
 
   @Get(':id')
-  getPostById(@Param('id') id: string) {
-    return this.postsService.getPostById(id)
+  async getPostById(@Param('id') id: number) {
+    const result = await this.postsService.getPostById(Number(id))
+    return new GetPostItemResponseDTO(result)
   }
 
   @Auth([AuthType.Bearer])
   @Post()
-  createPost(@Body() body: { title: string; content: string }, @ActiveUser('userId') userId: number) {
-    console.log('userId', userId)
-    return this.postsService.createPost(body, userId)
+  async createPost(
+    @Body() body: CreatePostBodyDTO,
+    @ActiveUser('userId') userId: number,
+  ): Promise<GetPostItemResponseDTO> {
+    const result = await this.postsService.createPost(body, userId)
+    return new GetPostItemResponseDTO(result)
   }
 
+  @Auth([AuthType.Bearer])
   @Put(':id')
-  updatePost(@Param('id') id: string, @Body() body: { title: string; content: string }) {
-    return this.postsService.updatePost(id, body)
+  async updatePost(@Param('id') id: number, @Body() body: UpdatePostBodyDTO, @ActiveUser('userId') userId: number) {
+    const result = await this.postsService.updatePost({
+      postId: id,
+      body,
+      userId,
+    })
+    return new GetPostItemResponseDTO(result)
   }
 
+  @Auth([AuthType.Bearer])
   @Delete(':id')
-  deletePost(@Param('id') id: string) {
-    return this.postsService.deletePost(id)
+  deletePost(@Param('id') id: number, @ActiveUser('userId') userId: number) {
+    return this.postsService.deletePost(id, userId)
   }
 }
