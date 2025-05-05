@@ -11,3 +11,9 @@
 ## Cùng 1-n trong một table
 
 Thì phải quy định rõ name relation
+
+
+
+## Note
+- **Sử dụng alias** khi có nhiều mối quan hệ cùng đến 1 bảng
+- **Không sử dụng alias** khi chỉ có 1 quan hệ duy nhất

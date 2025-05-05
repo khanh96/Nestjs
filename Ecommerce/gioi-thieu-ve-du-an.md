@@ -87,3 +87,14 @@ FAQ:
 Liên quan đến flow đăng ký tài khoản
 
 Mình muốn verify email trước khi người dùng nhấn submit đăng ký tài khoản, điều này giúp tránh được email rác cũng như là xung đột email giữa các user
+
+
+## Sử dụng DBML
+https://dbml.dbdiagram.io/docs/#schema-definition
+
+
+### Relationships & Foreign Key Definitions
+<: one-to-many. E.g: users.id < posts.user_id
+>: many-to-one. E.g: posts.user_id > users.id
+-: one-to-one. E.g: users.id - user_infos.user_id
+<>: many-to-many. E.g: authors.id <> books.id
