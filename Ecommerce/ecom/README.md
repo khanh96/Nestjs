@@ -28,7 +28,12 @@
 ## Project setup
 
 ```bash
+# install package
 $ npm install
+# create db
+$ npx prisma db push
+# generate seed data
+$ npm run initial-seed-data
 ```
 
 ## Compile and run the project
@@ -96,3 +101,7 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## DBML
+
+https://dbdiagram.io/d/Ecommerce-6818872c1ca52373f579f55f

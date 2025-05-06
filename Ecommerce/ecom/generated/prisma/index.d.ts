@@ -34968,10 +34968,10 @@ export namespace Prisma {
 
   export type RoleWhereUniqueInput = Prisma.AtLeast<{
     id?: number
+    name?: string
     AND?: RoleWhereInput | RoleWhereInput[]
     OR?: RoleWhereInput[]
     NOT?: RoleWhereInput | RoleWhereInput[]
-    name?: StringFilter<"Role"> | string
     description?: StringFilter<"Role"> | string
     isActive?: BoolFilter<"Role"> | boolean
     createdById?: IntNullableFilter<"Role"> | number | null
@@ -34985,7 +34985,7 @@ export namespace Prisma {
     createdBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     updatedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     deletedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
-  }, "id">
+  }, "id" | "name">
 
   export type RoleOrderByWithAggregationInput = {
     id?: SortOrder
