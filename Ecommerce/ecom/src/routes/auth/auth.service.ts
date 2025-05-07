@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
+import { RegisterBodyDto } from 'src/routes/auth/auth.dto'
 import { RolesService } from 'src/routes/auth/roles.service'
 import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { HashingService } from 'src/shared/services/hashing/hashing.service'
@@ -130,7 +131,7 @@ export class AuthService {
       throw new UnauthorizedException()
     }
   }
-  async register(body: any) {
+  async register(body: RegisterBodyDto) {
     try {
       const roleId = await this.rolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
@@ -146,10 +147,11 @@ export class AuthService {
       })
 
       return {
-        result: user,
+        data: user,
         message: 'Register successfully',
       }
     } catch (error) {
+      console.log('error', error)
       if (isUniqueConstraintPrismaError(error)) {
         // P2002: Unique constraint failed on the fields: (`email`)
         throw new ConflictException(
