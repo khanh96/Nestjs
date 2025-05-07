@@ -1,7 +1,7 @@
 // Seed data
 
 import envConfig from 'src/shared/config'
-import { ROLES } from 'src/shared/constants/role.constant'
+import { RoleName } from 'src/shared/constants/role.constant'
 import { HashingService } from 'src/shared/services/hashing/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
@@ -20,15 +20,15 @@ const main = async () => {
   const roles = await prismaService.role.createMany({
     data: [
       {
-        name: ROLES.ADMIN,
+        name: RoleName.ADMIN,
         description: 'Admin role',
       },
       {
-        name: ROLES.USER,
-        description: 'User role',
+        name: RoleName.CLIENT,
+        description: 'Client role',
       },
       {
-        name: ROLES.Seller,
+        name: RoleName.Seller,
         description: 'Seller role',
       },
     ],
@@ -36,7 +36,7 @@ const main = async () => {
 
   const adminRole = await prismaService.role.findFirstOrThrow({
     where: {
-      name: ROLES.ADMIN,
+      name: RoleName.ADMIN,
     },
   })
 
