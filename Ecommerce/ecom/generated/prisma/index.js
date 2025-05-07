@@ -502,11 +502,12 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": "postgresql://lucian:123456@localhost:5432/ecom_dev?schema=public"
+        "value": null
       }
     }
   },
