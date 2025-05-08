@@ -1,7 +1,11 @@
-import { UnprocessableEntityException } from '@nestjs/common'
+import { HttpStatus, UnprocessableEntityException } from '@nestjs/common'
 import { createZodValidationPipe } from 'nestjs-zod'
 import { ZodError } from 'zod'
 
+/**
+ * Sử dụng file này để tạo một pipe tùy chỉnh cấu trúc lỗi trả về client khi lỗi là 422 (UnprocessableEntityException)
+ * 422 là lỗi việc dữ liệu không hợp lệ, không thể xử lý được
+ */
 // Custom Zod validation pipe for handling validation errors
 // Sử dụng createZodValidationPipe để tạo một pipe tùy chỉnh cho việc xác thực dữ liệu
 const CustomZodValidationPipe = createZodValidationPipe({
@@ -15,7 +19,14 @@ const CustomZodValidationPipe = createZodValidationPipe({
         message: e.message,
       }
     })
-    return new UnprocessableEntityException({ errors: errors })
+    const customError = {
+      data: {
+        errors: errors,
+      },
+      message: 'Validation failed',
+      statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+    }
+    return new UnprocessableEntityException(customError)
   },
 })
 
