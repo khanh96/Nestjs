@@ -23,15 +23,15 @@ export class CustomZodSerializerInterceptor extends ZodSerializerInterceptor {
     const statusCode = context.switchToHttp().getResponse().statusCode
     // Lấy message từ decorator chưa xử lý nếu mà controller chưa response về message. [NOTE: có thể có hoặc không]
     const message = (this.reflector as Reflector).get<string | undefined>(MessageKey, context.getHandler()) ?? ''
-    console.log('message =======>', message)
+    // console.log('message =======>', message)
     // Khu vực này sẽ được thực thi trước khi request được xử lý
     return next.handle().pipe(
       // Khu vực này sẽ được thực thi sau khi request được xử lý
       map((res) => {
-        console.log('res', res)
+        // console.log('res', res)
         if (!responseSchema || typeof res !== 'object' || res instanceof StreamableFile) {
           return {
-            data: res,
+            result: res,
             statusCode,
             message: res.message || message,
           }
@@ -42,7 +42,7 @@ export class CustomZodSerializerInterceptor extends ZodSerializerInterceptor {
           : validate(res, responseSchema, createZodSerializationException)
         console.log('validatedData', validatedData)
         return {
-          data: validatedData,
+          result: validatedData,
           statusCode,
           message: res.message || message,
         }

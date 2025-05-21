@@ -8,6 +8,7 @@ export class HttpExceptionFilter extends BaseExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name)
 
   catch(exception: HttpException, host: ArgumentsHost) {
+    console.log('exception', exception)
     if (exception instanceof ZodSerializationException) {
       const zodError = exception.getZodError()
       this.logger.error(`ZodSerializationException: ${zodError.message}`)

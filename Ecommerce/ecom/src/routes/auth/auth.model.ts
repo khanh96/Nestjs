@@ -49,6 +49,32 @@ export const RegisterResponseSchema = UserSchema.omit({
   totpSecret: true,
 })
 
+export const LoginBodySchema = UserSchema.pick({
+  email: true,
+  password: true,
+})
+
 export type UserType = z.infer<typeof UserSchema>
+
 export type RegisterBodyType = z.infer<typeof RegisterBodySchema>
 export type RegisterResponseType = z.infer<typeof RegisterResponseSchema>
+
+export type LoginBodyType = z.infer<typeof LoginBodySchema>
+
+export const RefreshTokenSchema = z.object({
+  token: z.string().max(1000),
+  userId: z.number().positive(),
+  deviceId: z.number().positive(),
+  expiresAt: z.date(),
+  createdAt: z.date(),
+})
+
+// Refresh Token Model
+export type RefreshTokenType = z.infer<typeof RefreshTokenSchema>
+
+export const LogoutBodySchema = z.object({
+  refreshToken: z.string().max(1000),
+})
+
+export type LogoutBodyType = z.infer<typeof LogoutBodySchema>
+export type RefreshTokenBodyType = z.infer<typeof LogoutBodySchema>

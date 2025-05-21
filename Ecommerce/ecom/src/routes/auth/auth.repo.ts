@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { RegisterBodyType, UserType } from 'src/routes/auth/auth.model'
+import { Role, User } from '@prisma/client'
+import { RefreshTokenType, RegisterBodyType, UserType } from 'src/routes/auth/auth.model'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 /**
@@ -7,20 +8,86 @@ import { PrismaService } from 'src/shared/services/prisma/prisma.service'
  * Tác riêng logic truy vấn dữ liệu vào truy vấn nghiệp vụ
  * Phần này sẽ xử lý các truy vấn đến database
  */
+
+// User Model
 type CreateUserType = Omit<RegisterBodyType, 'confirmPassword'> & Pick<UserType, 'roleId'>
 
 type ResUserType = Omit<UserType, 'password' | 'totpSecret'>
+
+type UserWithRole = User & {
+  role: Role
+}
+
+// Refresh Token Model
+type CreateRefreshTokenType = Omit<RefreshTokenType, 'id' | 'createdAt'>
 
 @Injectable()
 export class AuthRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async createUser(user: CreateUserType): Promise<ResUserType> {
+    // fake data response from DB
+    // return await new Promise((resolve, reject) => {
+    //   setTimeout(() => {
+    //     try {
+    //       resolve({
+    //         id: 1,
+    //         avatar: 'aaaa',
+    //         status: 'INACTIVE',
+    //         createdById: 1,
+    //         email: 'email@gmail.com',
+    //         name: 'lucian',
+    //         phoneNumber: '123123123',
+    //         roleId: 1,
+    //         updatedById: 1,
+    //         deletedById: 1,
+    //         deletedAt: null,
+    //         createdAt: new Date(),
+    //         updatedAt: new Date(),
+    //       })
+    //     } catch (error) {
+    //       reject(error instanceof Error ? error : new Error(String(error)))
+    //     }
+    //   }, 2000)
+    // })
     return await this.prismaService.user.create({
       data: user,
       omit: {
         password: true,
         totpSecret: true,
+      },
+    })
+  }
+
+  async findUserByEmail(email: string): Promise<UserWithRole | null> {
+    return await this.prismaService.user.findUnique({
+      where: {
+        email,
+      },
+      include: {
+        role: true,
+      },
+    })
+  }
+
+  async createRefreshToken(refreshTokenModel: CreateRefreshTokenType): Promise<RefreshTokenType> {
+    return await this.prismaService.refreshToken.create({
+      data: refreshTokenModel,
+    })
+  }
+
+  async findRefreshTokenExist(refreshToken: string): Promise<RefreshTokenType> {
+    return await this.prismaService.refreshToken.findUniqueOrThrow({
+      where: {
+        token: refreshToken,
+      },
+    })
+  }
+
+  async deleteRefreshToken(refreshToken: string): Promise<RefreshTokenType> {
+    return await this.prismaService.refreshToken.delete({
+      where: {
+        token: refreshToken,
       },
     })
   }
