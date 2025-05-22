@@ -6,6 +6,7 @@ import {
   RefreshTokenBodyDto,
   RegisterBodyDto,
   RegisterResponseDto,
+  SendOtpBodyDto,
 } from 'src/routes/auth/auth.dto'
 import { AuthService } from 'src/routes/auth/auth.service'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
@@ -19,6 +20,13 @@ export class AuthController {
   @MessageRes('Register successfully')
   async register(@Body() body: RegisterBodyDto) {
     const result = await this.authService.register(body)
+    return result
+  }
+
+  @MessageRes('Send OTP successfully')
+  @Post('send-otp')
+  sendOtp(@Body() body: SendOtpBodyDto) {
+    const result = this.authService.sendOtp(body)
     return result
   }
 

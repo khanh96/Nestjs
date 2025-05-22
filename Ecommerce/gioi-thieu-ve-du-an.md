@@ -98,3 +98,29 @@ https://dbml.dbdiagram.io/docs/#schema-definition
 >: many-to-one. E.g: posts.user_id > users.id
 -: one-to-one. E.g: users.id - user_infos.user_id
 <>: many-to-many. E.g: authors.id <> books.id
+
+
+
+## Chức năng
+
+### Register Account
+
+#### Sent otp 
+1. Người dùng gửi **API Sent OTP auth/sent-otp**
+   1. Check xem **email** đã tồn tại hay chưa?
+   2. Generate otp dựa vào thuật toán nào đó
+   3. Insert **code** vào DB bảng **VerificationCode**
+      - Nếu **email** đã tồn tại thì update **code** vào bảng **VerificationCode** của **email** đó
+      - Nếu **email** chưa tồn tại thì insert **code** vào bảng **VerificationCode** của **email** đó
+   4. Send email với code
+      1. Sử dụng Resend để gửi email.
+
+
+### Register 
+1. Người dùng gửi api **API register auth/register**
+2. Validate đàu vào thông tin người dùng đăng nhập (email, password, name, phone,...)
+3. Verification code
+   - Nếu **code** sai thì báo lỗi sai code
+   - Nếu **code** hết hạn thì báo hết hạn
+4. Hasing password
+5. Insert user vào DB bảng **User**

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { Role, User } from '@prisma/client'
-import { RefreshTokenType, RegisterBodyType, UserType } from 'src/routes/auth/auth.model'
+import { RefreshTokenType, RegisterBodyType, VerificationCodeSchemaType } from 'src/routes/auth/auth.model'
+import { VerificationCodeType } from 'src/shared/constants/auth.constant'
+import { UserType } from 'src/shared/models/user.model'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 /**
@@ -10,13 +11,9 @@ import { PrismaService } from 'src/shared/services/prisma/prisma.service'
  */
 
 // User Model
-type CreateUserType = Omit<RegisterBodyType, 'confirmPassword'> & Pick<UserType, 'roleId'>
+type CreateUserType = Omit<RegisterBodyType, 'confirmPassword' | 'code'> & Pick<UserType, 'roleId'>
 
 type ResUserType = Omit<UserType, 'password' | 'totpSecret'>
-
-type UserWithRole = User & {
-  role: Role
-}
 
 // Refresh Token Model
 type CreateRefreshTokenType = Omit<RefreshTokenType, 'id' | 'createdAt'>
@@ -59,14 +56,27 @@ export class AuthRepository {
     })
   }
 
-  async findUserByEmail(email: string): Promise<UserWithRole | null> {
-    return await this.prismaService.user.findUnique({
+  async createVerificationCode(
+    payload: Pick<VerificationCodeSchemaType, 'email' | 'code' | 'expiresAt' | 'type'>,
+  ): Promise<VerificationCodeSchemaType> {
+    return await this.prismaService.verificationCode.upsert({
       where: {
-        email,
+        email: payload.email,
       },
-      include: {
-        role: true,
+      update: {
+        code: payload.code,
+        expiresAt: payload.expiresAt,
+        type: payload.type,
       },
+      create: payload,
+    })
+  }
+
+  async findUniqueVerificationCode(
+    uniqueObject: { id: number } | { email: string; code: string; type: VerificationCodeType },
+  ) {
+    return await this.prismaService.verificationCode.findUnique({
+      where: uniqueObject,
     })
   }
 

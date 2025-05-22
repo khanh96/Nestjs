@@ -4,6 +4,7 @@ import {
   RegisterResponseSchema,
   LoginBodySchema,
   LogoutBodySchema,
+  SendOtpBodySchema,
 } from 'src/routes/auth/auth.model'
 
 /**
@@ -18,3 +19,5 @@ export class LoginBodyDto extends createZodDto(LoginBodySchema) {}
 export class LogoutBodyDto extends createZodDto(LogoutBodySchema) {}
 
 export class RefreshTokenBodyDto extends createZodDto(LogoutBodySchema) {}
+
+export class SendOtpBodyDto extends createZodDto(SendOtpBodySchema) {}

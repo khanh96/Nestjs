@@ -1,17 +1,28 @@
 import {
-  ConflictException,
+  BadGatewayException,
   HttpStatus,
   Injectable,
   UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common'
-import { access } from 'fs'
-import { LoginBodyType, LogoutBodyType, RefreshTokenBodyType, RegisterBodyType } from 'src/routes/auth/auth.model'
+import {
+  LoginBodyType,
+  LogoutBodyType,
+  RefreshTokenBodyType,
+  RegisterBodyType,
+  SendOtpBodyType,
+} from 'src/routes/auth/auth.model'
 import { AuthRepository } from 'src/routes/auth/auth.repo'
 import { RolesService } from 'src/routes/auth/roles.service'
-import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
+import envConfig from 'src/shared/config'
+import { generateOTP, isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { HashingService } from 'src/shared/services/hashing/hashing.service'
 import { TokenService } from 'src/shared/services/token/token.service'
+import ms from 'ms'
+import { addMilliseconds } from 'date-fns'
+import { UserRepository } from 'src/shared/repositories/user.repo'
+import { VerificationCode } from 'src/shared/constants/auth.constant'
+import { EmailService } from 'src/shared/services/email/email.service'
 
 /**
  * Sử dụng file .service để xử lý các nghiệp vụ
@@ -24,10 +35,42 @@ export class AuthService {
     private readonly hashingService: HashingService,
     private readonly rolesService: RolesService,
     private readonly tokenService: TokenService,
+    private readonly userRepository: UserRepository,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(body: RegisterBodyType) {
     try {
+      //1. verification code otp
+      const otp = await this.authRepository.findUniqueVerificationCode({
+        email: body.email,
+        code: body.code,
+        type: VerificationCode.REGISTER,
+      })
+
+      if (!otp) {
+        throw new UnprocessableEntityException(
+          [
+            {
+              message: 'Invalid OTP code',
+              path: 'code',
+            },
+          ],
+          {
+            cause: new Error('Invalid OTP code'),
+            description: 'Invalid OTP code',
+          },
+        )
+      }
+      if (otp.expiresAt < new Date()) {
+        throw new UnprocessableEntityException([
+          {
+            message: 'OTP code has expired',
+            path: 'code',
+          },
+        ])
+      }
+
       const roleId = await this.rolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
 
@@ -44,11 +87,13 @@ export class AuthService {
       if (isUniqueConstraintPrismaError(error)) {
         console.log('error', error)
         // P2002: Unique constraint failed on the fields: (`email`)
-        throw new ConflictException(
-          {
-            message: 'Email already exists',
-            status: HttpStatus.CONFLICT,
-          },
+        throw new UnprocessableEntityException(
+          [
+            {
+              message: 'Email already exists',
+              status: HttpStatus.UNPROCESSABLE_ENTITY,
+            },
+          ],
           {
             cause: error,
             description: 'Email already exists',
@@ -57,6 +102,52 @@ export class AuthService {
       }
       throw error
     }
+  }
+
+  async sendOtp(body: SendOtpBodyType) {
+    //1. check if email exists in db
+    const user = await this.userRepository.findUnique({ email: body.email })
+    if (user) {
+      throw new UnprocessableEntityException(
+        [
+          {
+            message: 'Email already exists',
+            path: 'email',
+          },
+        ],
+        {
+          cause: new Error('Email already exists'),
+          description: 'Email already exists',
+        },
+      )
+    }
+    //2. generate otp
+    const otpCode = generateOTP()
+    //3. save otp to database
+    const verificationCode = await this.authRepository.createVerificationCode({
+      email: body.email,
+      code: otpCode,
+      expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)), // Thời gian hiện tại tạo otp + 30s
+      type: body.type,
+    })
+    //4. send otp to email using Resend
+    const { data, error } = await this.emailService.sendEmailOtp({
+      from: envConfig.EMAIL_FROM,
+      to: body.email,
+      subject: 'Send OTP code',
+      content: otpCode,
+    })
+    console.log(`send otp ${otpCode} from ${envConfig.EMAIL_FROM} to email: ${body.email}`)
+    if (error) {
+      throw new BadGatewayException(
+        {
+          message: 'Send OTP failed',
+          status: HttpStatus.BAD_GATEWAY,
+        },
+        { cause: error, description: 'Send OTP failed' },
+      )
+    }
+    return verificationCode
   }
 
   async generateTokens(payload: { userId: number }): Promise<{
@@ -96,7 +187,7 @@ export class AuthService {
     const password = body.password
     // 1. Check if user exists
 
-    const user = await this.authRepository.findUserByEmail(email)
+    const user = await this.userRepository.findUserByEmail(email)
 
     if (!user) {
       throw new UnauthorizedException(
@@ -115,7 +206,7 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnprocessableEntityException([
         {
-          field: 'password',
+          path: 'password',
           message: 'Password is incorrect',
         },
       ])

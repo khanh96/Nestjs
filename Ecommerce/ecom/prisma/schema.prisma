@@ -142,8 +142,8 @@ model UserTranslation {
 
 model VerificationCode {
   id    Int                  @id @default(autoincrement())
-  email String               @db.VarChar(500)
-  code  String               @db.VarChar(50)
+  email String               @unique @db.VarChar(100)
+  code  String               @db.VarChar(6)
   type  VerificationCodeType
 
   expiresAt DateTime

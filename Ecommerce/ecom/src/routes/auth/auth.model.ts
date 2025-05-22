@@ -1,4 +1,5 @@
-import { UserStatus } from 'src/shared/constants/auth.constant'
+import { VerificationCode } from 'src/shared/constants/auth.constant'
+import { UserSchema } from 'src/shared/models/user.model'
 import { z } from 'zod'
 
 /**
@@ -6,24 +7,6 @@ import { z } from 'zod'
  * Đồng thời sử dụng để validate request body trước khi chạy vào controller
  * Viết riềng ra như này thì sau khi làm frontend có thể sử dụng lại
  */
-
-export const UserSchema = z.object({
-  id: z.number(),
-  email: z.string().email(),
-  name: z.string().min(2).max(100),
-  password: z.string().min(6).max(20),
-  phoneNumber: z.string().min(9).max(15),
-  avatar: z.string().nullable(),
-  totpSecret: z.string().nullable(),
-  status: z.enum([UserStatus.ACTIVE, UserStatus.INACTIVE, UserStatus.BLOCKED]),
-  roleId: z.number().positive(),
-  createdById: z.number().nullable(),
-  updatedById: z.number().nullable(),
-  deletedById: z.number().nullable(),
-  deletedAt: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-})
 
 export const RegisterBodySchema = UserSchema.pick({
   email: true,
@@ -33,6 +16,7 @@ export const RegisterBodySchema = UserSchema.pick({
 })
   .extend({
     confirmPassword: z.string().min(6).max(20),
+    code: z.string().length(6),
   })
   .superRefine(({ password, confirmPassword }, ctx) => {
     if (password !== confirmPassword) {
@@ -53,8 +37,6 @@ export const LoginBodySchema = UserSchema.pick({
   email: true,
   password: true,
 })
-
-export type UserType = z.infer<typeof UserSchema>
 
 export type RegisterBodyType = z.infer<typeof RegisterBodySchema>
 export type RegisterResponseType = z.infer<typeof RegisterResponseSchema>
@@ -78,3 +60,25 @@ export const LogoutBodySchema = z.object({
 
 export type LogoutBodyType = z.infer<typeof LogoutBodySchema>
 export type RefreshTokenBodyType = z.infer<typeof LogoutBodySchema>
+
+export const VerificationCodeSchema = z.object({
+  id: z.number(),
+  email: z.string().email(),
+  code: z.string().length(6),
+  type: z.enum([
+    VerificationCode.REGISTER,
+    VerificationCode.FORGOT_PASSWORD,
+    VerificationCode.LOGIN,
+    VerificationCode.DISABLE_2FA,
+  ]),
+  expiresAt: z.date(),
+  createdAt: z.date(),
+})
+
+export const SendOtpBodySchema = VerificationCodeSchema.pick({
+  email: true,
+  type: true,
+})
+
+export type SendOtpBodyType = z.infer<typeof SendOtpBodySchema>
+export type VerificationCodeSchemaType = z.infer<typeof VerificationCodeSchema>
