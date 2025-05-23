@@ -23,6 +23,7 @@ import { addMilliseconds } from 'date-fns'
 import { UserRepository } from 'src/shared/repositories/user.repo'
 import { VerificationCode } from 'src/shared/constants/auth.constant'
 import { EmailService } from 'src/shared/services/email/email.service'
+import { RoleName } from 'src/shared/constants/role.constant'
 
 /**
  * Sử dụng file .service để xử lý các nghiệp vụ
@@ -137,6 +138,7 @@ export class AuthService {
       subject: 'Send OTP code',
       content: otpCode,
     })
+    console.log(data)
     console.log(`send otp ${otpCode} from ${envConfig.EMAIL_FROM} to email: ${body.email}`)
     if (error) {
       throw new BadGatewayException(
@@ -150,26 +152,38 @@ export class AuthService {
     return verificationCode
   }
 
-  async generateTokens(payload: { userId: number }): Promise<{
+  async generateTokens(payload: { userId: number; deviceId: number; roleId: number; roleName: RoleName }): Promise<{
     accessToken: string
     refreshToken: string
   }> {
+    // Generate access token and refresh token
+    // accessToken: { userId, deviceId, roleId, roleName }
+    // refreshToken: { userId }
     const [accessToken, refreshToken] = await Promise.all([
-      this.tokenService.signAccessToken(payload),
-      this.tokenService.signRefreshToken(payload),
+      this.tokenService.signAccessToken({
+        userId: payload.userId,
+        deviceId: payload.deviceId,
+        roleId: payload.roleId,
+        roleName: payload.roleName,
+      }),
+      this.tokenService.signRefreshToken({
+        userId: payload.userId,
+      }),
     ])
+    // Verify refresh token
     const refreshTokenDecoded = await this.tokenService.verifyRefreshToken(refreshToken)
     if (!refreshTokenDecoded) {
       throw new UnauthorizedException({
         message: 'Invalid refresh token',
       })
     }
+
     // Store refresh token in the database
     await this.authRepository.createRefreshToken({
       token: refreshToken,
       userId: payload.userId,
-      expiresAt: new Date(Date.now() + refreshTokenDecoded.exp * 1000),
-      deviceId: 3, // TODO: Chua cos deviceId
+      expiresAt: new Date(refreshTokenDecoded.exp * 1000),
+      deviceId: payload.deviceId,
     })
 
     return {
@@ -178,16 +192,11 @@ export class AuthService {
     }
   }
 
-  async login(body: LoginBodyType): Promise<{
-    accessToken: string
-    refreshToken: string
-    role: string
-  }> {
+  async login(body: LoginBodyType & { userAgent: string; ipAddress: string }) {
     const email = body.email
     const password = body.password
     // 1. Check if user exists
-
-    const user = await this.userRepository.findUserByEmail(email)
+    const user = await this.userRepository.findUserByEmailIncludeRole(email)
 
     if (!user) {
       throw new UnauthorizedException(
@@ -211,10 +220,23 @@ export class AuthService {
         },
       ])
     }
-    //3. Generate tokens
-    const tokens = await this.generateTokens({ userId: user.id })
+
+    //3. Tạo record trong bảng Device để lưu thông tin deviceId
+    const deviceId = await this.authRepository.createDevice({
+      userAgent: body.userAgent,
+      ip: body.ipAddress,
+      userId: user.id,
+    })
+
+    //4. Generate tokens
+    const tokens = await this.generateTokens({
+      userId: user.id,
+      deviceId: deviceId.id,
+      roleId: user.roleId,
+      roleName: user.role.name as RoleName,
+    })
+
     return {
-      role: user.role.name,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     }
@@ -265,7 +287,11 @@ export class AuthService {
       //3. Delete old refresh token
       await this.authRepository.deleteRefreshToken(refreshToken.token)
       //4. Generate new access token and refresh token
-      const tokens = await this.generateTokens({ userId: userId })
+      const roleId = 1 // TODO:
+      const roleName = RoleName.CLIENT // TODO:
+      const deviceId = refreshToken.deviceId // TODO:
+
+      const tokens = await this.generateTokens({ userId: userId, roleId: roleId, roleName, deviceId })
 
       //6. Return new access token and refresh token
       return {

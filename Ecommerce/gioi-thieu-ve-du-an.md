@@ -121,6 +121,26 @@ https://dbml.dbdiagram.io/docs/#schema-definition
 2. Validate đàu vào thông tin người dùng đăng nhập (email, password, name, phone,...)
 3. Verification code
    - Nếu **code** sai thì báo lỗi sai code
-   - Nếu **code** hết hạn thì báo hết hạn
+   - Nếu **code** hết hạn thì báo hết hạn    
+ - 
 4. Hasing password
 5. Insert user vào DB bảng **User**
+
+### Login 
+1. Người dùng nhập **email** và **password** gửi **API login auth/login**
+   1. Lấy user_agent và ip của người dùng khi gọi api ()
+   2. Kiểm tra email có tồn tại trong DB hay k? 
+   3. Kiểm tra password có đúng hay k? (password phải hassing)
+   4. Tạo record trong bảng **Device** để biết người dùng đang login bằng gì. Từ đó có **deviceId**, **roleId**, **roleName**
+   5. Tạo access_token và refresh_token. refresh_token lưu vào bảng **RefreshToken**.
+   6. Trả access_token và refresh_token về cho người dùng.
+
+### Refresh token
+- Người dùng hết access_token và muốn cấp lại access_token dựa vào refresh_token để khi đăng khi hết thời hạn access_token sẽ tự động gia hạn ở frontend và sẽ không bị logout ra ngoài.
+1. Client gửi **refresh_token** vào api **API auth/refresh-token**
+2. Kiểm tra **refresh_token** có hợp lệ hay không?
+3. Kiểm tra **refresh_token** có tồn tại trong DB không?
+4. Cập nhật lại **userAgent**, **ip**, **lastActive** cho table **Device**
+5. Xóa **refresh_token** cũ
+6. Tạo **access_token**. Tạo **refresh_token** mới lưu vào DB
+7. Trả **access_token** và **refresh_token** cho người dùng

@@ -14,6 +14,7 @@ export const RegisterBodySchema = UserSchema.pick({
   password: true,
   phoneNumber: true,
 })
+  .strict()
   .extend({
     confirmPassword: z.string().min(6).max(20),
     code: z.string().length(6),
@@ -36,12 +37,14 @@ export const RegisterResponseSchema = UserSchema.omit({
 export const LoginBodySchema = UserSchema.pick({
   email: true,
   password: true,
-})
+}).strict()
 
-export type RegisterBodyType = z.infer<typeof RegisterBodySchema>
-export type RegisterResponseType = z.infer<typeof RegisterResponseSchema>
-
-export type LoginBodyType = z.infer<typeof LoginBodySchema>
+export const LoginResponseSchema = z
+  .object({
+    accessToken: z.string().max(1000),
+    refreshToken: z.string().max(1000),
+  })
+  .strict()
 
 export const RefreshTokenSchema = z.object({
   token: z.string().max(1000),
@@ -51,15 +54,9 @@ export const RefreshTokenSchema = z.object({
   createdAt: z.date(),
 })
 
-// Refresh Token Model
-export type RefreshTokenType = z.infer<typeof RefreshTokenSchema>
-
 export const LogoutBodySchema = z.object({
   refreshToken: z.string().max(1000),
 })
-
-export type LogoutBodyType = z.infer<typeof LogoutBodySchema>
-export type RefreshTokenBodyType = z.infer<typeof LogoutBodySchema>
 
 export const VerificationCodeSchema = z.object({
   id: z.number(),
@@ -78,7 +75,34 @@ export const VerificationCodeSchema = z.object({
 export const SendOtpBodySchema = VerificationCodeSchema.pick({
   email: true,
   type: true,
-})
+}).strict()
 
-export type SendOtpBodyType = z.infer<typeof SendOtpBodySchema>
+export const DeviceSchema = z
+  .object({
+    id: z.number(),
+    userAgent: z.string(),
+    ip: z.string(),
+    lastActive: z.date(),
+    isActive: z.boolean(),
+    userId: z.number().positive(),
+    createdAt: z.date(),
+  })
+  .strict()
+
+// Refresh Token Model
+export type RefreshTokenType = z.infer<typeof RefreshTokenSchema>
+export type RefreshTokenBodyType = z.infer<typeof LogoutBodySchema>
+export type RefreshTokenResponseType = z.infer<typeof LoginResponseSchema>
+
+export type LoginBodyType = z.infer<typeof LoginBodySchema>
+export type LoginResponseType = z.infer<typeof LoginResponseSchema>
+
+export type RegisterBodyType = z.infer<typeof RegisterBodySchema>
+export type RegisterResponseType = z.infer<typeof RegisterResponseSchema>
+
+export type LogoutBodyType = z.infer<typeof LogoutBodySchema>
+
 export type VerificationCodeSchemaType = z.infer<typeof VerificationCodeSchema>
+export type SendOtpBodyType = z.infer<typeof SendOtpBodySchema>
+
+export type DeviceType = z.infer<typeof DeviceSchema>
