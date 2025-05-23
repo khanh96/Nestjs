@@ -177,7 +177,8 @@ export class AuthService {
         message: 'Invalid refresh token',
       })
     }
-
+    // TODO: Hỏi tại sao thời gian hết hạn của 2 token lại khác nhau
+    // console.log('refreshTokenDecoded', refreshTokenDecoded)
     // Store refresh token in the database
     await this.authRepository.createRefreshToken({
       token: refreshToken,
@@ -246,14 +247,15 @@ export class AuthService {
     message: string
   }> {
     try {
-      //1. Check if refreshToken is valid
+      // 1. Check if refreshToken is valid
       await this.tokenService.verifyRefreshToken(body.refreshToken)
-      //2. Check if refresh token is in the database
-      const refreshToken = await this.authRepository.findRefreshTokenExist(body.refreshToken)
-      //3. Delete refresh token
-      await this.authRepository.deleteRefreshToken(refreshToken.token)
-
-      //4. Return success message
+      // 2. Delete refresh token
+      const refreshToken = await this.authRepository.deleteRefreshToken(body.refreshToken)
+      // 3.  Update device
+      await this.authRepository.updateDevice(refreshToken.deviceId, {
+        isActive: false,
+      })
+      // 4. Return success message
       return {
         message: 'Logout successfully',
       }
@@ -275,7 +277,7 @@ export class AuthService {
     }
   }
 
-  async refreshToken(body: RefreshTokenBodyType): Promise<{
+  async refreshToken(body: RefreshTokenBodyType & { userAgent: string; ipAddress: string }): Promise<{
     accessToken: string
     refreshToken: string
   }> {
@@ -283,15 +285,26 @@ export class AuthService {
       //1. Check if refresh token is valid
       const { userId } = await this.tokenService.verifyRefreshToken(body.refreshToken)
       //2. Check if refresh token is in the database
-      const refreshToken = await this.authRepository.findRefreshTokenExist(body.refreshToken)
-      //3. Delete old refresh token
-      await this.authRepository.deleteRefreshToken(refreshToken.token)
-      //4. Generate new access token and refresh token
-      const roleId = 1 // TODO:
-      const roleName = RoleName.CLIENT // TODO:
-      const deviceId = refreshToken.deviceId // TODO:
+      const refreshToken = await this.authRepository.findUniqueRefreshTokenIncludeUserRole(body.refreshToken)
 
-      const tokens = await this.generateTokens({ userId: userId, roleId: roleId, roleName, deviceId })
+      // 3. Update device
+      const $device = this.authRepository.updateDevice(refreshToken.deviceId, {
+        userAgent: body.userAgent,
+        ip: body.ipAddress,
+      })
+
+      //4. Delete old refresh token
+      const $refreshToken = this.authRepository.deleteRefreshToken(refreshToken.token)
+
+      //5. Generate new access token and refresh token
+      const $tokens = this.generateTokens({
+        userId: userId,
+        roleId: refreshToken.user.roleId,
+        roleName: refreshToken.user.role.name as RoleName,
+        deviceId: refreshToken.deviceId,
+      })
+
+      const [, , tokens] = await Promise.all([$device, $refreshToken, $tokens])
 
       //6. Return new access token and refresh token
       return {

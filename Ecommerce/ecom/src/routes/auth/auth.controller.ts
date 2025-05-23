@@ -5,6 +5,7 @@ import {
   LoginResponseDto,
   LogoutBodyDto,
   RefreshTokenBodyDto,
+  RefreshTokenResponseDto,
   RegisterBodyDto,
   RegisterResponseDto,
   SendOtpBodyDto,
@@ -54,9 +55,14 @@ export class AuthController {
   }
 
   @MessageRes('Refresh token successfully')
+  @ZodSerializerDto(RefreshTokenResponseDto)
   @Post('refresh-token')
-  async refreshToken(@Body() body: RefreshTokenBodyDto) {
-    const result = await this.authService.refreshToken(body)
+  async refreshToken(@Body() body: RefreshTokenBodyDto, @UserAgent() userAgent: string, @Ip() ipAddress: string) {
+    const result = await this.authService.refreshToken({
+      refreshToken: body.refreshToken,
+      userAgent,
+      ipAddress,
+    })
     return result
   }
 

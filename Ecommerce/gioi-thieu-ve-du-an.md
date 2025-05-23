@@ -138,9 +138,17 @@ https://dbml.dbdiagram.io/docs/#schema-definition
 ### Refresh token
 - Người dùng hết access_token và muốn cấp lại access_token dựa vào refresh_token để khi đăng khi hết thời hạn access_token sẽ tự động gia hạn ở frontend và sẽ không bị logout ra ngoài.
 1. Client gửi **refresh_token** vào api **API auth/refresh-token**
-2. Kiểm tra **refresh_token** có hợp lệ hay không?
-3. Kiểm tra **refresh_token** có tồn tại trong DB không?
-4. Cập nhật lại **userAgent**, **ip**, **lastActive** cho table **Device**
-5. Xóa **refresh_token** cũ
-6. Tạo **access_token**. Tạo **refresh_token** mới lưu vào DB
-7. Trả **access_token** và **refresh_token** cho người dùng
+   1. Kiểm tra **refresh_token** có hợp lệ hay không?
+   2. Kiểm tra **refresh_token** có tồn tại trong DB không?
+   3. Cập nhật lại **userAgent**, **ip** cho table **Device**
+   4. Xóa **refresh_token** cũ
+   5. Tạo **access_token**. Tạo **refresh_token** mới lưu vào DB
+   6. Trả **access_token** và **refresh_token** cho người dùng
+
+### Logout
+- Logout người dùng
+1. Client gửi **refresh_token** vào api **API auth/logout**
+  1. Kiểm tra **refresh_token** có hợp lệ hay không?
+  2. Xóa **refresh_token** trong DB
+  3. Cập nhật lại trạng thái login trong **Device**
+  4. Gửi message logout
