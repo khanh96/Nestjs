@@ -25,12 +25,12 @@ export class TokenService {
     return token
   }
 
-  signRefreshToken(payload: { userId: number }): Promise<string> {
+  signRefreshToken(payload: { userId: number; expiresIn?: number }): Promise<string> {
     const token = this.jwtService.signAsync(
       { ...payload, uuid: uuidv4() },
       {
         secret: envConfig.REFRESH_TOKEN_SECRET,
-        expiresIn: envConfig.REFRESH_TOKEN_EXPIRES_IN,
+        expiresIn: payload.expiresIn ? payload.expiresIn : envConfig.REFRESH_TOKEN_EXPIRES_IN,
         algorithm: 'HS256',
       },
     )
