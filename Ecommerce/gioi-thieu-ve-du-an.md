@@ -152,3 +152,28 @@ https://dbml.dbdiagram.io/docs/#schema-definition
   2. Xóa **refresh_token** trong DB
   3. Cập nhật lại trạng thái login trong **Device**
   4. Gửi message logout
+
+### Google Oauth
+- Đăng ký trên google console để có 3 giá trị **GOOGLE_CLIENT_ID**, **GOOGLE_CLIENT_SECRET**, **GOOGLE_REDIRECT_URI**, **GOOGLE_CLIENT_OAUTH_URL**
+1. Client call api **API auth/google-link** để lấy authUrl
+   1. Tạo url gồm **scope**, **clientID**.
+      1. Khởi tạo **scope** cho **url**
+      2. Tạo **state** cần truyền cho **url** để gửi cho Client
+      3. Generate auth **url** (sử dụng googleapi)
+      4. Trả **url** cho client
+2. Server redirect client với url định nghĩa ở client **GOOGLE_CLIENT_OAUTH_URL** từ **API google/callback**
+   1. Lấy **code**, **state** từ query params.
+   2. Dùng Json để parse **state** lấy ra **userAgent** và **ipAddress**
+   3. Dùng **googleapis** để lấy **accesstoken** từ **code**
+   4. Thiết lập thông tin xác thực với tokens  **setCredentials** từ **googleapis**
+   5. Lấy thông tin user profile. Từ đó sẽ có **email**, **name**,...
+   6. Xem user đã được sử dụng trong hệ thống chưa?
+      1. Nếu chưa có
+         1. Lấy roleID
+         2. Tạo và hasing password
+         3. Tạo user
+      2. Nếu tồn tại 
+      => Từ đó ta có **userId**,
+   7. Tạo device từ **userId**, **ipAddress**, **userAgent**
+   8. Generate accessToken, refreshToken 
+   9. Tạo url để redirect và gán **accessToken**, **refreshToken** trong url

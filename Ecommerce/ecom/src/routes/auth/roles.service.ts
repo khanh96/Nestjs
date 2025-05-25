@@ -15,12 +15,12 @@ export class RolesService {
   // và lưu vào biến clientRoleId
   // để lần sau không cần phải gọi lại nữa
   async getClientRoleId(): Promise<number> {
-    console.log('get clientRoleId')
+    // console.log('get clientRoleId')
     if (this.clientRoleId) {
       return this.clientRoleId
     }
-    console.log('query get roleID')
-    console.log('clientRoleId', this.clientRoleId)
+    // console.log('query get roleID')
+    // console.log('clientRoleId', this.clientRoleId)
     // Fetch the role ID from the database or any other source
     const role = await this.prismaService.role.findFirstOrThrow({
       where: {

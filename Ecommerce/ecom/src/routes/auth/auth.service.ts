@@ -125,7 +125,7 @@ export class AuthService {
     //2. generate otp
     const otpCode = generateOTP()
     //3. save otp to database
-    const verificationCode = await this.authRepository.createVerificationCode({
+    await this.authRepository.createVerificationCode({
       email: body.email,
       code: otpCode,
       expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)), // Thời gian hiện tại tạo otp + 30s
@@ -149,7 +149,9 @@ export class AuthService {
         { cause: error, description: 'Send OTP failed' },
       )
     }
-    return verificationCode
+    return {
+      message: 'Send OTP successfully',
+    }
   }
 
   async generateTokens(payload: {

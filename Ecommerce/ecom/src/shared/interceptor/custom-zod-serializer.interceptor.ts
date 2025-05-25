@@ -33,7 +33,7 @@ export class CustomZodSerializerInterceptor extends ZodSerializerInterceptor {
           return {
             result: res,
             statusCode,
-            message: res.message || message,
+            message: res?.message || message,
           }
         }
 
@@ -44,7 +44,7 @@ export class CustomZodSerializerInterceptor extends ZodSerializerInterceptor {
         return {
           result: validatedData,
           statusCode,
-          message: res.message || message,
+          message: res?.message || message,
         }
       }),
     )
