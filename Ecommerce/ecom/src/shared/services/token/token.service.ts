@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { JwtService } from '@nestjs/jwt'
+import { JwtService, JwtSignOptions } from '@nestjs/jwt'
 import envConfig from 'src/shared/config'
 import { RoleName } from 'src/shared/constants/role.constant'
 import { AccessTokenPayload, RefreshTokenPayload } from 'src/shared/types/jwt.type'
@@ -26,14 +26,21 @@ export class TokenService {
   }
 
   signRefreshToken(payload: { userId: number; expiresIn?: number }): Promise<string> {
-    const token = this.jwtService.signAsync(
-      { ...payload, uuid: uuidv4() },
-      {
-        secret: envConfig.REFRESH_TOKEN_SECRET,
-        expiresIn: payload.expiresIn ? payload.expiresIn : envConfig.REFRESH_TOKEN_EXPIRES_IN,
-        algorithm: 'HS256',
-      },
-    )
+    const body = payload.expiresIn
+      ? { ...payload, uuid: uuidv4(), exp: payload.expiresIn }
+      : { ...payload, uuid: uuidv4() }
+
+    const options: JwtSignOptions = payload.expiresIn
+      ? {
+          secret: envConfig.REFRESH_TOKEN_SECRET,
+          algorithm: 'HS256',
+        }
+      : {
+          secret: envConfig.REFRESH_TOKEN_SECRET,
+          expiresIn: envConfig.REFRESH_TOKEN_EXPIRES_IN,
+          algorithm: 'HS256',
+        }
+    const token = this.jwtService.signAsync(body, options)
     return token
   }
 

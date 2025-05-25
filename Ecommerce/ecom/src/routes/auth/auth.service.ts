@@ -164,8 +164,7 @@ export class AuthService {
   }> {
     // Generate access token and refresh token
     // accessToken: { userId, deviceId, roleId, roleName }
-    // refreshToken: { userId }
-    console.log('payload.expiresIn', payload.expiresIn)
+    // refreshToken: { userId, expiresIn }
     const [accessToken, refreshToken] = await Promise.all([
       this.tokenService.signAccessToken({
         userId: payload.userId,
@@ -178,7 +177,6 @@ export class AuthService {
         expiresIn: payload.expiresIn,
       }),
     ])
-    // console.log('refreshToken', refreshToken)
     // Verify refresh token
     const refreshTokenDecoded = await this.tokenService.verifyRefreshToken(refreshToken)
     if (!refreshTokenDecoded) {
@@ -186,8 +184,6 @@ export class AuthService {
         message: 'Invalid refresh token',
       })
     }
-    // TODO: Hỏi tại sao thời gian hết hạn của 2 token lại khác nhau
-    console.log('exp refresh-token', refreshTokenDecoded.exp)
     // Store refresh token in the database
     await this.authRepository.createRefreshToken({
       token: refreshToken,
@@ -304,7 +300,6 @@ export class AuthService {
 
       //4. Delete old refresh token
       const $refreshToken = this.authRepository.deleteRefreshToken(refreshToken.token)
-      console.log(' exp trước đó', exp)
       //5. Generate new access token and refresh token
       const $tokens = this.generateTokens({
         userId: userId,
