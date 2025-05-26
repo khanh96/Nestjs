@@ -72,6 +72,13 @@ export class AuthRepository {
     })
   }
 
+  async updateUser(where: Pick<UserType, 'id'>, data: Partial<Omit<UserType, 'id'>>): Promise<UserType> {
+    return await this.prismaService.user.update({
+      where: where,
+      data: data,
+    })
+  }
+
   async createVerificationCode(
     payload: Pick<VerificationCodeSchemaType, 'email' | 'code' | 'expiresAt' | 'type'>,
   ): Promise<VerificationCodeSchemaType> {
@@ -93,6 +100,14 @@ export class AuthRepository {
   ) {
     return await this.prismaService.verificationCode.findUnique({
       where: uniqueObject,
+    })
+  }
+
+  async deleteVerificationCode(
+    where: Pick<VerificationCodeSchemaType, 'id'> | Pick<VerificationCodeSchemaType, 'code' | 'email' | 'type'>,
+  ): Promise<VerificationCodeSchemaType> {
+    return await this.prismaService.verificationCode.delete({
+      where: where,
     })
   }
 

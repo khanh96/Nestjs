@@ -58,19 +58,21 @@ export const LogoutBodySchema = z.object({
   refreshToken: z.string().max(1000),
 })
 
-export const VerificationCodeSchema = z.object({
-  id: z.number(),
-  email: z.string().email(),
-  code: z.string().length(6),
-  type: z.enum([
-    VerificationCode.REGISTER,
-    VerificationCode.FORGOT_PASSWORD,
-    VerificationCode.LOGIN,
-    VerificationCode.DISABLE_2FA,
-  ]),
-  expiresAt: z.date(),
-  createdAt: z.date(),
-})
+export const VerificationCodeSchema = z
+  .object({
+    id: z.number(),
+    email: z.string().email(),
+    code: z.string().length(6),
+    type: z.enum([
+      VerificationCode.REGISTER,
+      VerificationCode.FORGOT_PASSWORD,
+      VerificationCode.LOGIN,
+      VerificationCode.DISABLE_2FA,
+    ]),
+    expiresAt: z.date(),
+    createdAt: z.date(),
+  })
+  .strict()
 
 export const SendOtpBodySchema = VerificationCodeSchema.pick({
   email: true,
@@ -89,6 +91,23 @@ export const DeviceSchema = z
   })
   .strict()
 
+export const ForgotPasswordBodySchema = z
+  .object({
+    email: z.string().email(),
+    code: z.string().length(6),
+    password: z.string().min(6).max(20),
+    confirmPassword: z.string().min(6).max(20),
+  })
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password and Confirm Password must be the same',
+        path: ['confirmPassword'],
+      })
+    }
+  })
+
 // Refresh Token Model
 export type RefreshTokenType = z.infer<typeof RefreshTokenSchema>
 export type RefreshTokenBodyType = z.infer<typeof LogoutBodySchema>
@@ -106,3 +125,5 @@ export type VerificationCodeSchemaType = z.infer<typeof VerificationCodeSchema>
 export type SendOtpBodyType = z.infer<typeof SendOtpBodySchema>
 
 export type DeviceType = z.infer<typeof DeviceSchema>
+
+export type ForgotPasswordBodyType = z.infer<typeof ForgotPasswordBodySchema>

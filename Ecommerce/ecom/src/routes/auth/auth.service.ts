@@ -1,11 +1,6 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import {
-  BadGatewayException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-  UnprocessableEntityException,
-} from '@nestjs/common'
-import {
+  ForgotPasswordBodyType,
   LoginBodyType,
   LogoutBodyType,
   RefreshTokenBodyType,
@@ -31,7 +26,6 @@ import {
   InvalidRefreshTokenException,
   OTPExpiredException,
   PasswordIncorrectException,
-  SendOtpFailedException,
 } from 'src/routes/auth/error.model'
 
 /**
@@ -90,9 +84,15 @@ export class AuthService {
   async sendOtp(body: SendOtpBodyType) {
     //1. check if email exists in db
     const user = await this.userRepository.findUnique({ email: body.email })
-    if (user) {
+
+    if (body.type === VerificationCode.REGISTER && user) {
       throw EmailAlreadyExistsException
     }
+
+    if (body.type === VerificationCode.FORGOT_PASSWORD && !user) {
+      throw AccountNotExistException
+    }
+
     //2. generate otp
     const otpCode = generateOTP()
     //3. save otp to database
@@ -103,17 +103,18 @@ export class AuthService {
       type: body.type,
     })
     //4. send otp to email using Resend
-    const { data, error } = await this.emailService.sendEmailOtp({
-      from: envConfig.EMAIL_FROM,
-      to: body.email,
-      subject: 'Send OTP code',
-      content: otpCode,
-    })
-    console.log(data)
+    //NOTE: Tạm thời đóng để tránh gửi email quá nhiều trong quá trình phát triển
+    // const { data, error } = await this.emailService.sendEmailOtp({
+    //   from: envConfig.EMAIL_FROM,
+    //   to: body.email,
+    //   subject: 'Send OTP code',
+    //   content: otpCode,
+    // })
+    // console.log(data)
+    // if (error) {
+    //   throw SendOtpFailedException
+    // }
     console.log(`send otp ${otpCode} from ${envConfig.EMAIL_FROM} to email: ${body.email}`)
-    if (error) {
-      throw SendOtpFailedException
-    }
     return {
       message: 'Send OTP successfully',
     }
@@ -286,7 +287,44 @@ export class AuthService {
     }
   }
 
-  forgotPassword() {
-    return 'Forgot password route'
+  async forgotPassword(body: ForgotPasswordBodyType) {
+    const { email, code, password } = body
+
+    //1. Check if otp exists in the database
+    const verificationCode = await this.authRepository.findUniqueVerificationCode({
+      email,
+      code,
+      type: VerificationCode.FORGOT_PASSWORD,
+    })
+
+    if (!verificationCode) {
+      throw InvalidOTPException
+    }
+    if (verificationCode.expiresAt < new Date()) {
+      throw OTPExpiredException
+    }
+
+    //2. Check if user exists in the database
+    const user = await this.userRepository.findUnique({ email })
+    if (!user) {
+      throw AccountNotExistException
+    }
+    //3. Hash new password
+    const hashedPassword = await this.hashingService.hash(password)
+
+    //4. Update user password
+    await this.authRepository.updateUser(
+      { id: user.id },
+      {
+        password: hashedPassword,
+      },
+    )
+
+    //5. Delete verification code
+    await this.authRepository.deleteVerificationCode({
+      id: verificationCode.id,
+    })
+
+    return
   }
 }

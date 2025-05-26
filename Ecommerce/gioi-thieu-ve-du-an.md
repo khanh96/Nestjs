@@ -177,3 +177,22 @@ https://dbml.dbdiagram.io/docs/#schema-definition
    7. Tạo device từ **userId**, **ipAddress**, **userAgent**
    8. Generate accessToken, refreshToken 
    9. Tạo url để redirect và gán **accessToken**, **refreshToken** trong url
+
+
+#### Forgot password
+1. Client gửi **email** call **API auth/forgot-password**
+   1. Check **email** tồn tại trong DB hay k?
+   2. Generate **otp** 
+   3. Save **otp** in DB
+   4. Send **otp** to email 
+2. Client nhập **otp**, **confirmPassword**, **password** rồi call API **auth/reset-password**
+   1. Kiểm tra **otp** có đúng không, có trong DB k?
+      1. Không: Thì báo lỗi Invalid, Or hết hạn thì báo hết hạn.
+      2. Có: Lấy ra **email**
+   2. Tìm user với **email** có trong DB không?
+      1. Không: Báo lỗi không có user
+      2. Có: Lấy ra **user**
+   3. Hasing **password**
+   4. Update **user** với **password** mới.
+   5. Xóa **otp** đi
+   6. Gửi **message** về cho Client.

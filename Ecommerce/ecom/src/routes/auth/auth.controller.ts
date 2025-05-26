@@ -2,6 +2,7 @@ import { Body, Controller, Get, Ip, Post, Query, Res } from '@nestjs/common'
 import { Response } from 'express'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
+  ForgotPasswordBodyDto,
   LoginBodyDto,
   LoginResponseDto,
   LogoutBodyDto,
@@ -109,8 +110,11 @@ export class AuthController {
     }
   }
 
-  // @Post('forgot-password')
-  // forgotPassword(@Body() body: any) {
-  //   return 'Forgot password route'
-  // }
+  @IsPublic()
+  @MessageRes('Forgot password successfully')
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: ForgotPasswordBodyDto) {
+    const result = await this.authService.forgotPassword(body)
+    return result
+  }
 }
