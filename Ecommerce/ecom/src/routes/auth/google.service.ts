@@ -112,14 +112,14 @@ export class GoogleService {
         role: { name: roleName },
       } = user
 
-      // Create device
+      //8.  Create device
       const device = await this.authRepository.createDevice({
         ip: ipAddress,
         userAgent: userAgent,
         userId: id,
       })
 
-      // Generate tokens
+      //9. Generate tokens
       const { accessToken, refreshToken } = await this.authService.generateTokens({
         userId: id,
         deviceId: device.id,

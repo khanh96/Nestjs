@@ -103,7 +103,7 @@ https://dbml.dbdiagram.io/docs/#schema-definition
 
 ## Chức năng
 
-### Register Account
+### Auth
 
 #### Sent otp 
 1. Người dùng gửi **API Sent OTP auth/sent-otp**
@@ -116,7 +116,7 @@ https://dbml.dbdiagram.io/docs/#schema-definition
       1. Sử dụng Resend để gửi email.
 
 
-### Register 
+#### Register 
 1. Người dùng gửi api **API register auth/register**
 2. Validate đàu vào thông tin người dùng đăng nhập (email, password, name, phone,...)
 3. Verification code
@@ -126,7 +126,7 @@ https://dbml.dbdiagram.io/docs/#schema-definition
 4. Hasing password
 5. Insert user vào DB bảng **User**
 
-### Login 
+#### Login 
 1. Người dùng nhập **email** và **password** gửi **API login auth/login**
    1. Lấy user_agent và ip của người dùng khi gọi api ()
    2. Kiểm tra email có tồn tại trong DB hay k? 
@@ -135,7 +135,7 @@ https://dbml.dbdiagram.io/docs/#schema-definition
    5. Tạo access_token và refresh_token. refresh_token lưu vào bảng **RefreshToken**.
    6. Trả access_token và refresh_token về cho người dùng.
 
-### Refresh token
+#### Refresh token
 - Người dùng hết access_token và muốn cấp lại access_token dựa vào refresh_token để khi đăng khi hết thời hạn access_token sẽ tự động gia hạn ở frontend và sẽ không bị logout ra ngoài.
 1. Client gửi **refresh_token** vào api **API auth/refresh-token**
    1. Kiểm tra **refresh_token** có hợp lệ hay không?
@@ -145,7 +145,7 @@ https://dbml.dbdiagram.io/docs/#schema-definition
    5. Tạo **access_token**. Tạo **refresh_token** mới lưu vào DB
    6. Trả **access_token** và **refresh_token** cho người dùng
 
-### Logout
+#### Logout
 - Logout người dùng
 1. Client gửi **refresh_token** vào api **API auth/logout**
   1. Kiểm tra **refresh_token** có hợp lệ hay không?
@@ -153,7 +153,7 @@ https://dbml.dbdiagram.io/docs/#schema-definition
   3. Cập nhật lại trạng thái login trong **Device**
   4. Gửi message logout
 
-### Google Oauth
+#### Google Oauth
 - Đăng ký trên google console để có 3 giá trị **GOOGLE_CLIENT_ID**, **GOOGLE_CLIENT_SECRET**, **GOOGLE_REDIRECT_URI**, **GOOGLE_CLIENT_OAUTH_URL**
 1. Client call api **API auth/google-link** để lấy authUrl
    1. Tạo url gồm **scope**, **clientID**.

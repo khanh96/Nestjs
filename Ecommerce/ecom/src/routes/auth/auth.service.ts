@@ -24,6 +24,15 @@ import { UserRepository } from 'src/shared/repositories/user.repo'
 import { VerificationCode } from 'src/shared/constants/auth.constant'
 import { EmailService } from 'src/shared/services/email/email.service'
 import { RoleName } from 'src/shared/constants/role.constant'
+import {
+  AccountNotExistException,
+  EmailAlreadyExistsException,
+  InvalidOTPException,
+  InvalidRefreshTokenException,
+  OTPExpiredException,
+  PasswordIncorrectException,
+  SendOtpFailedException,
+} from 'src/routes/auth/error.model'
 
 /**
  * Sử dụng file .service để xử lý các nghiệp vụ
@@ -50,26 +59,10 @@ export class AuthService {
       })
 
       if (!otp) {
-        throw new UnprocessableEntityException(
-          [
-            {
-              message: 'Invalid OTP code',
-              path: 'code',
-            },
-          ],
-          {
-            cause: new Error('Invalid OTP code'),
-            description: 'Invalid OTP code',
-          },
-        )
+        throw InvalidOTPException
       }
       if (otp.expiresAt < new Date()) {
-        throw new UnprocessableEntityException([
-          {
-            message: 'OTP code has expired',
-            path: 'code',
-          },
-        ])
+        throw OTPExpiredException
       }
 
       const roleId = await this.rolesService.getClientRoleId()
@@ -88,18 +81,7 @@ export class AuthService {
       if (isUniqueConstraintPrismaError(error)) {
         console.log('error', error)
         // P2002: Unique constraint failed on the fields: (`email`)
-        throw new UnprocessableEntityException(
-          [
-            {
-              message: 'Email already exists',
-              status: HttpStatus.UNPROCESSABLE_ENTITY,
-            },
-          ],
-          {
-            cause: error,
-            description: 'Email already exists',
-          },
-        )
+        throw EmailAlreadyExistsException
       }
       throw error
     }
@@ -109,18 +91,7 @@ export class AuthService {
     //1. check if email exists in db
     const user = await this.userRepository.findUnique({ email: body.email })
     if (user) {
-      throw new UnprocessableEntityException(
-        [
-          {
-            message: 'Email already exists',
-            path: 'email',
-          },
-        ],
-        {
-          cause: new Error('Email already exists'),
-          description: 'Email already exists',
-        },
-      )
+      throw EmailAlreadyExistsException
     }
     //2. generate otp
     const otpCode = generateOTP()
@@ -141,13 +112,7 @@ export class AuthService {
     console.log(data)
     console.log(`send otp ${otpCode} from ${envConfig.EMAIL_FROM} to email: ${body.email}`)
     if (error) {
-      throw new BadGatewayException(
-        {
-          message: 'Send OTP failed',
-          status: HttpStatus.BAD_GATEWAY,
-        },
-        { cause: error, description: 'Send OTP failed' },
-      )
+      throw SendOtpFailedException
     }
     return {
       message: 'Send OTP successfully',
@@ -182,9 +147,7 @@ export class AuthService {
     // Verify refresh token
     const refreshTokenDecoded = await this.tokenService.verifyRefreshToken(refreshToken)
     if (!refreshTokenDecoded) {
-      throw new UnauthorizedException({
-        message: 'Invalid refresh token',
-      })
+      throw InvalidRefreshTokenException
     }
     // Store refresh token in the database
     await this.authRepository.createRefreshToken({
@@ -207,26 +170,13 @@ export class AuthService {
     const user = await this.userRepository.findUserByEmailIncludeRole(email)
 
     if (!user) {
-      throw new UnauthorizedException(
-        {
-          message: 'Account does not exist',
-        },
-        {
-          cause: new Error('Account does not exist'),
-          description: 'Account does not exist',
-        },
-      )
+      throw AccountNotExistException
     }
     // 2. Check if password is correct
     const isPasswordValid = await this.hashingService.compare(password, user.password)
 
     if (!isPasswordValid) {
-      throw new UnprocessableEntityException([
-        {
-          path: 'password',
-          message: 'Password is incorrect',
-        },
-      ])
+      throw PasswordIncorrectException
     }
 
     //3. Tạo record trong bảng Device để lưu thông tin deviceId

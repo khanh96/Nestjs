@@ -40,7 +40,6 @@ export class AuthController {
   @Post('send-otp')
   @ZodSerializerDto(MessageResponseDto)
   sendOtp(@Body() body: SendOtpBodyDto) {
-    return 'Send OTP route is not implemented yet'
     const result = this.authService.sendOtp(body)
     return result
   }
