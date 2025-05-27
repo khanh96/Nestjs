@@ -1,11 +1,13 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import {
+  DisableTwoFactorAuthBodyType,
   ForgotPasswordBodyType,
   LoginBodyType,
   LogoutBodyType,
   RefreshTokenBodyType,
   RegisterBodyType,
   SendOtpBodyType,
+  VerificationCodeSchemaType,
 } from 'src/routes/auth/auth.model'
 import { AuthRepository } from 'src/routes/auth/auth.repo'
 import { RolesService } from 'src/routes/auth/roles.service'
@@ -16,17 +18,21 @@ import { TokenService } from 'src/shared/services/token/token.service'
 import ms from 'ms'
 import { addMilliseconds } from 'date-fns'
 import { UserRepository } from 'src/shared/repositories/user.repo'
-import { VerificationCode } from 'src/shared/constants/auth.constant'
+import { VerificationCode, VerificationCodeType } from 'src/shared/constants/auth.constant'
 import { EmailService } from 'src/shared/services/email/email.service'
 import { RoleName } from 'src/shared/constants/role.constant'
 import {
   AccountNotExistException,
+  AlreadyEnabled2FAException,
   EmailAlreadyExistsException,
   InvalidOTPException,
   InvalidRefreshTokenException,
+  InvalidTOTPException,
+  NotEnabled2FAException,
   OTPExpiredException,
   PasswordIncorrectException,
 } from 'src/routes/auth/error.model'
+import { TwoFactorAuthService } from 'src/shared/services/2fa/2fa.service'
 
 /**
  * Sử dụng file .service để xử lý các nghiệp vụ
@@ -41,23 +47,37 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly userRepository: UserRepository,
     private readonly emailService: EmailService,
+    private readonly twoFactorAuthService: TwoFactorAuthService,
   ) {}
+
+  private async verifyVerificationCode({
+    email,
+    code,
+    type,
+  }: {
+    email: string
+    code: string
+    type: VerificationCodeType
+  }): Promise<VerificationCodeSchemaType> {
+    const verificationCode = await this.authRepository.findUniqueVerificationCode({
+      email: email,
+      code: code,
+      type: type,
+    })
+
+    if (!verificationCode) {
+      throw InvalidOTPException
+    }
+    if (verificationCode.expiresAt < new Date()) {
+      throw OTPExpiredException
+    }
+    return verificationCode
+  }
 
   async register(body: RegisterBodyType) {
     try {
       //1. verification code otp
-      const otp = await this.authRepository.findUniqueVerificationCode({
-        email: body.email,
-        code: body.code,
-        type: VerificationCode.REGISTER,
-      })
-
-      if (!otp) {
-        throw InvalidOTPException
-      }
-      if (otp.expiresAt < new Date()) {
-        throw OTPExpiredException
-      }
+      await this.verifyVerificationCode({ email: body.email, code: body.code, type: VerificationCode.REGISTER })
 
       const roleId = await this.rolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
@@ -88,9 +108,14 @@ export class AuthService {
     if (body.type === VerificationCode.REGISTER && user) {
       throw EmailAlreadyExistsException
     }
-
-    if (body.type === VerificationCode.FORGOT_PASSWORD && !user) {
-      throw AccountNotExistException
+    if (!user) {
+      if (
+        body.type === VerificationCode.FORGOT_PASSWORD ||
+        body.type === VerificationCode.LOGIN ||
+        body.type === VerificationCode.DISABLE_2FA
+      ) {
+        throw AccountNotExistException
+      }
     }
 
     //2. generate otp
@@ -180,14 +205,37 @@ export class AuthService {
       throw PasswordIncorrectException
     }
 
-    //3. Tạo record trong bảng Device để lưu thông tin deviceId
+    // 3. If user has two-factor authentication enabled, verify the TOTP code or OTP code
+    if (user.totpSecret) {
+      if (body.totpCode) {
+        // Verify the TOTP code
+        const isValidTotp = this.twoFactorAuthService.verifyTOTP({
+          email: user.email,
+          token: body.totpCode,
+          secret: user.totpSecret,
+        })
+
+        if (!isValidTotp) {
+          throw InvalidTOTPException
+        }
+      } else if (body.code) {
+        // Verify the OTP code
+        await this.verifyVerificationCode({
+          email: user.email,
+          code: body.code,
+          type: VerificationCode.LOGIN,
+        })
+      }
+    }
+
+    //4. Tạo record trong bảng Device để lưu thông tin deviceId
     const deviceId = await this.authRepository.createDevice({
       userAgent: body.userAgent,
       ip: body.ipAddress,
       userId: user.id,
     })
 
-    //4. Generate tokens
+    //5. Generate tokens
     const tokens = await this.generateTokens({
       userId: user.id,
       deviceId: deviceId.id,
@@ -291,18 +339,11 @@ export class AuthService {
     const { email, code, password } = body
 
     //1. Check if otp exists in the database
-    const verificationCode = await this.authRepository.findUniqueVerificationCode({
+    const verificationCode = await this.verifyVerificationCode({
       email,
       code,
       type: VerificationCode.FORGOT_PASSWORD,
     })
-
-    if (!verificationCode) {
-      throw InvalidOTPException
-    }
-    if (verificationCode.expiresAt < new Date()) {
-      throw OTPExpiredException
-    }
 
     //2. Check if user exists in the database
     const user = await this.userRepository.findUnique({ email })
@@ -326,5 +367,88 @@ export class AuthService {
     })
 
     return
+  }
+
+  async setupTwoFactorAuth(userId: number) {
+    // 1. Check if user exists
+    const user = await this.userRepository.findUnique({ id: userId })
+    if (!user) {
+      throw AccountNotExistException
+    }
+    // 2. Check user enabled two-factor authentication
+    if (user.totpSecret) {
+      throw AlreadyEnabled2FAException
+    }
+    // 3. Generate two-factor authentication secret
+    const { uri, secret } = this.twoFactorAuthService.generateTOTPSecret(user.email)
+
+    // 4. Save two-factor authentication secret to the database
+    await this.authRepository.updateUser(
+      { id: userId },
+      {
+        totpSecret: secret,
+      },
+    )
+    // 5. Return URI and totp for the user to scan with their authenticator app
+    return {
+      uri,
+      secret,
+    }
+  }
+
+  async getTwoFactorAuthStatus(userId: number) {
+    // 1. Check if user exists
+    const user = await this.userRepository.findUnique({ id: userId })
+    if (!user) {
+      throw AccountNotExistException
+    }
+    // 2. Check user enabled two-factor authentication
+    if (user.totpSecret) {
+      return {
+        message: 'Two-factor authentication is enabled',
+        isEnabled: true,
+      }
+    }
+    return {
+      message: 'Two-factor authentication is not enabled',
+      isEnabled: false,
+    }
+  }
+
+  async disableTwoFactorAuth({ code, totpCode, userId }: DisableTwoFactorAuthBodyType & { userId: number }) {
+    // 1. Check if user exists
+    const user = await this.userRepository.findUnique({ id: userId })
+    if (!user) {
+      throw AccountNotExistException
+    }
+    // 2. Check user enabled two-factor authentication
+    if (!user.totpSecret) {
+      throw NotEnabled2FAException
+    }
+    // 3. Verify the totp or code
+    if (totpCode) {
+      // Verify the TOTP code
+      const isValidTotp = this.twoFactorAuthService.verifyTOTP({
+        email: user.email,
+        token: totpCode,
+        secret: user.totpSecret,
+      })
+
+      if (!isValidTotp) {
+        throw InvalidTOTPException
+      }
+    } else if (code) {
+      await this.verifyVerificationCode({
+        email: user.email,
+        code,
+        type: VerificationCode.DISABLE_2FA,
+      })
+    }
+
+    // 4. Update user to disable two-factor authentication
+    await this.authRepository.updateUser({ id: userId }, { totpSecret: null })
+    return {
+      message: 'Two-factor authentication has been disabled successfully',
+    }
   }
 }

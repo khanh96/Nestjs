@@ -9,6 +9,7 @@ import { AccessTokenGuard } from 'src/shared/guards/access-token.guard'
 import { APIKeyGuard } from 'src/shared/guards/api-key.guard'
 import { UserRepository } from 'src/shared/repositories/user.repo'
 import { EmailService } from 'src/shared/services/email/email.service'
+import { TwoFactorAuthService } from 'src/shared/services/2fa/2fa.service'
 
 const sharedServices = [
   PrismaService,
@@ -18,6 +19,7 @@ const sharedServices = [
   APIKeyGuard,
   UserRepository,
   EmailService,
+  TwoFactorAuthService,
 ]
 
 // Để sử dụng được PrismaService ở các module khác, cần phải import SharedModule vào module đó

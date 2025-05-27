@@ -19,6 +19,7 @@ const CustomZodValidationPipe = createZodValidationPipe({
         message: e.message,
       }
     })
+    // TODO: Còn phải validate lỗi cho chính xác các message
     const customError = {
       data: {
         errors: errors,

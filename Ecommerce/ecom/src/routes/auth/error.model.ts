@@ -58,3 +58,15 @@ export const PasswordIncorrectException = new UnprocessableEntityException([
     path: 'password',
   },
 ])
+
+export const AlreadyEnabled2FAException = new UnprocessableEntityException([
+  { message: '2FA is already enabled', path: 'totp' },
+])
+
+export const NotEnabled2FAException = new UnprocessableEntityException([
+  { message: '2FA is not enabled', path: 'totp' },
+])
+
+export const InvalidTOTPException = new UnprocessableEntityException([
+  { message: 'Invalid TOTP code', path: 'totpCode' },
+])

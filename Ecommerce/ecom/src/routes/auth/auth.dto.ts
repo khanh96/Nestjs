@@ -7,6 +7,9 @@ import {
   SendOtpBodySchema,
   LoginResponseSchema,
   ForgotPasswordBodySchema,
+  TwoFactorAuthResponseSchema,
+  TwoFactorAuthStatusResponseSchema,
+  DisableTwoFactorAuthBodySchema,
 } from 'src/routes/auth/auth.model'
 
 /**
@@ -29,3 +32,9 @@ export class RefreshTokenResponseDto extends createZodDto(LoginResponseSchema) {
 export class SendOtpBodyDto extends createZodDto(SendOtpBodySchema) {}
 
 export class ForgotPasswordBodyDto extends createZodDto(ForgotPasswordBodySchema) {}
+
+export class TwoFactorAuthResponseDto extends createZodDto(TwoFactorAuthResponseSchema) {}
+
+export class TwoFactorAuthStatusResponseDto extends createZodDto(TwoFactorAuthStatusResponseSchema) {}
+
+export class DisableTwoFactorAuthBodyDto extends createZodDto(DisableTwoFactorAuthBodySchema) {}

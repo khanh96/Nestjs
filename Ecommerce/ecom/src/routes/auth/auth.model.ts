@@ -37,7 +37,21 @@ export const RegisterResponseSchema = UserSchema.omit({
 export const LoginBodySchema = UserSchema.pick({
   email: true,
   password: true,
-}).strict()
+})
+  .strict()
+  .extend({
+    totpCode: z.string().length(6).optional(),
+    code: z.string().length(6).optional(),
+  })
+  .superRefine(({ totpCode, code }, ctx) => {
+    if (!totpCode && !code) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one of totpCode or code must be provided',
+        path: ['totpCode', 'code'],
+      })
+    }
+  })
 
 export const LoginResponseSchema = z
   .object({
@@ -108,6 +122,35 @@ export const ForgotPasswordBodySchema = z
     }
   })
 
+export const TwoFactorAuthResponseSchema = z
+  .object({
+    uri: z.string().url(),
+    secret: z.string(),
+  })
+  .strict()
+
+export const TwoFactorAuthStatusResponseSchema = z
+  .object({
+    message: z.string(),
+    isEnabled: z.boolean(),
+  })
+  .strict()
+
+export const DisableTwoFactorAuthBodySchema = z
+  .object({
+    totpCode: z.string().length(6).optional(),
+    code: z.string().length(6).optional(),
+  })
+  .superRefine(({ totpCode, code }, ctx) => {
+    if (!totpCode && !code) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one of totpCode or code must be provided',
+        path: ['totpCode', 'code'],
+      })
+    }
+  })
+
 // Refresh Token Model
 export type RefreshTokenType = z.infer<typeof RefreshTokenSchema>
 export type RefreshTokenBodyType = z.infer<typeof LogoutBodySchema>
@@ -127,3 +170,7 @@ export type SendOtpBodyType = z.infer<typeof SendOtpBodySchema>
 export type DeviceType = z.infer<typeof DeviceSchema>
 
 export type ForgotPasswordBodyType = z.infer<typeof ForgotPasswordBodySchema>
+export type TwoFactorAuthResponseType = z.infer<typeof TwoFactorAuthResponseSchema>
+
+export type TwoFactorAuthStatusResponseType = z.infer<typeof TwoFactorAuthStatusResponseSchema>
+export type DisableTwoFactorAuthBodyType = z.infer<typeof DisableTwoFactorAuthBodySchema>

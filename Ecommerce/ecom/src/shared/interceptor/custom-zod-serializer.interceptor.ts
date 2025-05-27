@@ -36,11 +36,10 @@ export class CustomZodSerializerInterceptor extends ZodSerializerInterceptor {
             message: res?.message || message,
           }
         }
-
         const validatedData = Array.isArray(res)
           ? res.map((item) => validate(item, responseSchema, createZodSerializationException))
           : validate(res, responseSchema, createZodSerializationException)
-        // console.log('validatedData', validatedData)
+
         return {
           result: validatedData,
           statusCode,

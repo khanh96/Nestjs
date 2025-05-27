@@ -128,12 +128,16 @@ https://dbml.dbdiagram.io/docs/#schema-definition
 
 #### Login 
 1. Người dùng nhập **email** và **password** gửi **API login auth/login**
-   1. Lấy user_agent và ip của người dùng khi gọi api ()
+   1. Lấy user_agent và ip của người dùng khi gọi api
    2. Kiểm tra email có tồn tại trong DB hay k? 
    3. Kiểm tra password có đúng hay k? (password phải hassing)
-   4. Tạo record trong bảng **Device** để biết người dùng đang login bằng gì. Từ đó có **deviceId**, **roleId**, **roleName**
-   5. Tạo access_token và refresh_token. refresh_token lưu vào bảng **RefreshToken**.
-   6. Trả access_token và refresh_token về cho người dùng.
+   4. Nếu đã bật 2FA thì xác thực 2FA (dựa vào **totp** (app) or **code**(email) gửi từ client)
+      1. Kiểu tra mã **totp** or **code** có đúng?
+         1. Không: Gửi lỗi **totp** invalid or **code** invalid.
+         2. Có: Thực hiện bước tiếp theo.
+   5. Tạo record trong bảng **Device** để biết người dùng đang login bằng gì. Từ đó có **deviceId**, **roleId**, **roleName**
+   6. Tạo access_token và refresh_token. refresh_token lưu vào bảng **RefreshToken**.
+   7. Trả access_token và refresh_token về cho người dùng.
 
 #### Refresh token
 - Người dùng hết access_token và muốn cấp lại access_token dựa vào refresh_token để khi đăng khi hết thời hạn access_token sẽ tự động gia hạn ở frontend và sẽ không bị logout ra ngoài.
@@ -180,11 +184,7 @@ https://dbml.dbdiagram.io/docs/#schema-definition
 
 
 #### Forgot password
-1. Client gửi **email** call **API auth/forgot-password**
-   1. Check **email** tồn tại trong DB hay k?
-   2. Generate **otp** 
-   3. Save **otp** in DB
-   4. Send **otp** to email 
+1. Client gửi **email** call **API auth/send-otp**
 2. Client nhập **otp**, **confirmPassword**, **password** rồi call API **auth/reset-password**
    1. Kiểm tra **otp** có đúng không, có trong DB k?
       1. Không: Thì báo lỗi Invalid, Or hết hạn thì báo hết hạn.
@@ -196,3 +196,35 @@ https://dbml.dbdiagram.io/docs/#schema-definition
    4. Update **user** với **password** mới.
    5. Xóa **otp** đi
    6. Gửi **message** về cho Client.
+
+
+#### 2FA (Two-Factor Authentication)
+##### Tạo mã 2FA 
+1. Client call **API auth/2fa/setup** (authentication requied)
+   1. Kiểm tra xem có **user** dựa vào **userId** hay không?
+      1. Không: Báo **user** không tồn tại
+      2. Có: Xem user đã bật 2FA chưa?
+         1. Rồi: thông báo lỗi đã bật 2FA
+         2. Chưa: thì làm tiếp
+   2. Tạo mã 2FA dựa trên thư viện **otpauth** => **secret** và **uri**
+   3. Update field 2FA **totpSecret** in table **User**.
+   4. Trả về cho người dùng **URI** để generate ra QR code. và **totp**
+
+##### Vô hiệu hóa mã 2FA
+1. Client call **API auth/2fa/disable** và gửi  **totpCode** or **code** 
+   1. Kiểm tra xem user có tồn tại không?
+      1. Không: Báo lỗi không có user
+      2. Có: Kiểm tra dùng **2FA** hay là dùng **otpcode**
+         1. Kiểm tra xem bật 2FA chưa?
+            1. Chưa: Báo lỗi chưa bật 2FA
+            2. Có: Kiểm tra **totpCode** có hợp lệ hay không
+               1. Chưa: báo lỗi **totpCode** không hợp lệ
+               2. Có: Thì làm tiếp
+         2. Kiểm tra dùng **otpcode** đúng không (email)
+            1. Chưa: Báo lỗi invalid **otpcode**
+            2. Có : Kiểm tra hạn của **otpcode** còn không?
+               1. Không: Báo lỗi hết hạn
+               2. Có: Thì làm tiếp 
+      3. Update user với **totpCode** = null để tắt 2FA
+   2. Thông báo cho user biết là **Vô hiệu hóa mã 2FA**
+
