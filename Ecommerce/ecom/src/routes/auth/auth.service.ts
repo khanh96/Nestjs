@@ -31,7 +31,7 @@ import {
   NotEnabled2FAException,
   OTPExpiredException,
   PasswordIncorrectException,
-} from 'src/routes/auth/error.model'
+} from 'src/routes/auth/auth.error'
 import { TwoFactorAuthService } from 'src/shared/services/2fa/2fa.service'
 
 /**

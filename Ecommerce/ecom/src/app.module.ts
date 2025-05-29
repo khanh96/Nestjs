@@ -8,9 +8,10 @@ import { SharedModule } from 'src/shared/shared.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './routes/auth/auth.module'
+import { LanguageModule } from 'src/routes/language/language.module'
 
 @Module({
-  imports: [SharedModule, AuthModule], // chứa các module.
+  imports: [SharedModule, AuthModule, LanguageModule], // chứa các module.
   controllers: [AppController], // chứa controller
   providers: [
     AppService,

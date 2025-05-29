@@ -101,10 +101,11 @@ https://dbml.dbdiagram.io/docs/#schema-definition
 
 
 
+## Một số thuật ngữ sử dụng 
+- **soft delete**: Theo nguyên tắc chung của soft delete, chúng ta sẽ không xóa dữ liệu khỏi cơ sở dữ liệu mà chỉ đánh dấu nó là đã bị xóa và không nên cho phép cập nhật bản ghi đã bị xóa trừ khi có yêu cầu đặc biệt (ví dụ: khôi phục hoặc chỉnh sửa dữ liệu lich sử)
+
 ## Chức năng
-
 ### Auth
-
 #### Sent otp 
 1. Người dùng gửi **API Sent OTP auth/sent-otp**
    1. Check xem **email** đã tồn tại hay chưa?
@@ -228,3 +229,34 @@ https://dbml.dbdiagram.io/docs/#schema-definition
       3. Update user với **totpCode** = null để tắt 2FA
    2. Thông báo cho user biết là **Vô hiệu hóa mã 2FA**
 
+#### Language
+##### Create language
+1. Client call post **API languages** với body: **id**, **name**
+   1. Tạo language
+      1. Có: thì báo lỗi đã tồn tại
+      2. Chưa: Tạo
+   2. Trả về kq tạo
+##### Get all language
+1. Client call get **API languages**
+   1. Trả về tất cả các languages trong DB mà không chưa bị xóa.
+##### Get detail language
+1. Client call get  **API languages/:id**
+   1. Tìm xem có language trong DB không?
+      1. Không: báo lỗi không có language nào tồn tại.
+      2. Có: thì làm tiếp
+   2. Trả về chi tiết language
+##### Update language
+1. Client call patch  **API languages/:id**
+   1. Tìm xem có language trong DB không?
+      1. Không: báo lỗi không có language nào tồn tại.
+      2. Có: thì làm tiếp
+   2. Update language với **id**
+   3. Trả về chi tiết language
+##### Delete language
+1. Client call delete  **API languages/:id**
+   1. Kiểm tra xem là xóa **mềm** hay xóa **cứng** 
+      1. Xóa mềm:
+         1. Update field **deletedAt** với **id** language đó. 
+      2. Xóa cứng
+         1. Remove **language** đó khỏi DB?
+   2. Trả về message xóa thành công
