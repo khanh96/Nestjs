@@ -38,20 +38,28 @@ export const LoginBodySchema = UserSchema.pick({
   email: true,
   password: true,
 })
-  .strict()
   .extend({
     totpCode: z.string().length(6).optional(),
     code: z.string().length(6).optional(),
   })
+  .strict()
   .superRefine(({ totpCode, code }, ctx) => {
-    if (!totpCode && !code) {
+    if (totpCode !== undefined && code !== undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'At least one of totpCode or code must be provided',
-        path: ['totpCode', 'code'],
+        path: ['totpCode'],
+      })
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one of totpCode or code must be provided',
+        path: ['code'],
       })
     }
   })
+
+// totpCode: true | code: true, => true
+// totpCode: false | code: false, 2FA: true  => true
 
 export const LoginResponseSchema = z
   .object({
