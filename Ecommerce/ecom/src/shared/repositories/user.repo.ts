@@ -1,10 +1,19 @@
 import { Injectable } from '@nestjs/common'
+import { PermissionType } from 'src/shared/models/permission.model'
 import { RoleType } from 'src/shared/models/role.model'
 import { UserType } from 'src/shared/models/user.model'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 type UserWithRole = UserType & {
   role: RoleType
+}
+
+export type WhereUniqueUserType = { id: number } | { email: string }
+
+type UserIncludeRolePermissionsType = UserType & {
+  role: RoleType & {
+    permissions: PermissionType[]
+  }
 }
 
 @Injectable()
@@ -25,6 +34,39 @@ export class UserRepository {
   async findUnique(uniqueObject: { email: string } | { id: number }): Promise<UserType | null> {
     return await this.prismaService.user.findUnique({
       where: uniqueObject,
+    })
+  }
+
+  async findUniqueIncludeRolePermissions(where: WhereUniqueUserType): Promise<UserIncludeRolePermissionsType | null> {
+    const result = await this.prismaService.user.findFirst({
+      where: {
+        ...where,
+      },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              where: {
+                deletedAt: null, // Ensure we only fetch non-deleted permissions
+              },
+            },
+          },
+        },
+      },
+    })
+    return result
+  }
+
+  async update(where: { id: number }, data: Partial<UserType>): Promise<UserType> {
+    return await this.prismaService.user.update({
+      where: {
+        id: where.id,
+        deletedAt: null, // Ensure we only update non-deleted users
+      },
+      data: {
+        ...data,
+        updatedAt: new Date(), // Update the timestamp
+      },
     })
   }
 }

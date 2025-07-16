@@ -9,9 +9,10 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './routes/auth/auth.module'
 import { LanguageModule } from 'src/routes/language/language.module'
+import { ProfileModule } from './routes/profile/profile.module'
 
 @Module({
-  imports: [SharedModule, AuthModule, LanguageModule], // chứa các module.
+  imports: [SharedModule, AuthModule, LanguageModule, ProfileModule], // chứa các module.
   controllers: [AppController], // chứa controller
   providers: [
     AppService,
