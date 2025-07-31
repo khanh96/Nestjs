@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "initial-seed-data": "ts-node -r tsconfig-paths/register initialScript",
+    "create-permission": "ts-node -r tsconfig-paths/register initialScript/create-permission.ts",
     "email:dev": "email dev",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
