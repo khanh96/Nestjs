@@ -27,7 +27,7 @@ export class PermissionRepo {
           deletedAt: null,
         },
         orderBy: {
-          createdAt: 'desc',
+          id: 'desc',
         },
         skip,
         take,
