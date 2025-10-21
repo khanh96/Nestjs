@@ -23,10 +23,12 @@ async function createPermissionScript() {
       if (layer.route) {
         const path = layer.route?.path
         const method = layer.route?.stack[0].method.toUpperCase() as keyof typeof HTTPMethod
+        const moduleName = String(path.split('/')[1]).toUpperCase()
         return {
           path: path,
           method: method,
           name: path + ' ' + method,
+          module: moduleName,
         }
       }
     })

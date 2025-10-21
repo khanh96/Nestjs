@@ -10,8 +10,8 @@ import { AppService } from './app.service'
 import { AuthModule } from './routes/auth/auth.module'
 import { LanguageModule } from 'src/routes/language/language.module'
 import { ProfileModule } from './routes/profile/profile.module'
-import { PermissionModule } from './routes/permission/permission.module';
-import { RoleModule } from './routes/role/role.module';
+import { PermissionModule } from './routes/permission/permission.module'
+import { RoleModule } from './routes/role/role.module'
 
 @Module({
   imports: [SharedModule, AuthModule, LanguageModule, ProfileModule, PermissionModule, RoleModule], // chứa các module.

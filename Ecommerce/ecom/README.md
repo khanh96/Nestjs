@@ -105,3 +105,49 @@ Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 ## DBML
 
 https://dbdiagram.io/d/Ecommerce-6818872c1ca52373f579f55f
+
+## ROLE
+
+- Name: ...
+- Description: ...
+- Permissions: ...
+  - Auth: On/Off
+    - Login: On/Off
+    - Register: On/Off
+    - Logout: On/Off
+  - User: On/Off
+    - Read: On/Off
+      ....
+
+```ts
+const PERMISSION = [
+  {
+    id: 95,
+    name: '/auth/register POST',
+    description: '',
+    module: 'AUTH',
+    path: '/auth/register',
+    method: 'POST',
+    createdById: null,
+    updatedById: null,
+    deletedById: null,
+    deletedAt: null,
+    createdAt: '2025-10-21T04:22:59.141Z',
+    updatedAt: '2025-10-21T04:22:59.141Z',
+  },
+]
+function groupPermissionsByModule() {
+  const newPermissions = permissions.reduce(
+    (acc, permission) => {
+      const module = permission.module
+      if (!acc[module]) {
+        acc[module] = []
+      }
+      acc[module].push(permission)
+      return acc
+    },
+    {} as Record<string, typeof PERMISSION>,
+  )
+  console.log(newPermissions)
+}
+```
