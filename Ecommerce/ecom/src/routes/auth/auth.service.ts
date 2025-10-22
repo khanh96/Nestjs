@@ -10,7 +10,6 @@ import {
   VerificationCodeSchemaType,
 } from 'src/routes/auth/auth.model'
 import { AuthRepository } from 'src/routes/auth/auth.repo'
-import { RolesService } from 'src/routes/auth/roles.service'
 import envConfig from 'src/shared/config'
 import { generateOTP, isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { HashingService } from 'src/shared/services/hashing/hashing.service'
@@ -30,9 +29,10 @@ import {
   InvalidTOTPException,
   NotEnabled2FAException,
   OTPExpiredException,
-  PasswordIncorrectException,
 } from 'src/routes/auth/auth.error'
 import { TwoFactorAuthService } from 'src/shared/services/2fa/2fa.service'
+import { InvalidPasswordException } from 'src/shared/error'
+import { ShareRoleRepository } from 'src/shared/repositories/role.repo'
 
 /**
  * Sử dụng file .service để xử lý các nghiệp vụ
@@ -43,7 +43,7 @@ export class AuthService {
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly hashingService: HashingService,
-    private readonly rolesService: RolesService,
+    private readonly shareRolesService: ShareRoleRepository,
     private readonly tokenService: TokenService,
     private readonly userRepository: UserRepository,
     private readonly emailService: EmailService,
@@ -79,7 +79,7 @@ export class AuthService {
       //1. verification code otp
       await this.verifyVerificationCode({ email: body.email, code: body.code, type: VerificationCode.REGISTER })
 
-      const roleId = await this.rolesService.getClientRoleId()
+      const roleId = await this.shareRolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
 
       const user = await this.authRepository.createUser({
@@ -202,7 +202,7 @@ export class AuthService {
     const isPasswordValid = await this.hashingService.compare(password, user.password)
 
     if (!isPasswordValid) {
-      throw PasswordIncorrectException
+      throw InvalidPasswordException
     }
 
     // 3. If user has two-factor authentication enabled, verify the TOTP code or OTP code
@@ -354,7 +354,7 @@ export class AuthService {
     const hashedPassword = await this.hashingService.hash(password)
 
     //4. Update user password
-    await this.authRepository.updateUser(
+    await this.userRepository.update(
       { id: user.id },
       {
         password: hashedPassword,
@@ -383,7 +383,7 @@ export class AuthService {
     const { uri, secret } = this.twoFactorAuthService.generateTOTPSecret(user.email)
 
     // 4. Save two-factor authentication secret to the database
-    await this.authRepository.updateUser(
+    await this.userRepository.update(
       { id: userId },
       {
         totpSecret: secret,
@@ -446,7 +446,7 @@ export class AuthService {
     }
 
     // 4. Update user to disable two-factor authentication
-    await this.authRepository.updateUser({ id: userId }, { totpSecret: null })
+    await this.userRepository.update({ id: userId }, { totpSecret: null, updatedById: userId })
     return {
       message: 'Two-factor authentication has been disabled successfully',
     }

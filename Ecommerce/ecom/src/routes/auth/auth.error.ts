@@ -52,13 +52,6 @@ export const AccountNotExistException = new UnauthorizedException(
   },
 )
 
-export const PasswordIncorrectException = new UnprocessableEntityException([
-  {
-    message: 'Password is incorrect',
-    path: 'password',
-  },
-])
-
 export const AlreadyEnabled2FAException = new UnprocessableEntityException([
   { message: '2FA is already enabled', path: 'totp' },
 ])

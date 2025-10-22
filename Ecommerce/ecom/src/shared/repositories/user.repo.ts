@@ -8,7 +8,9 @@ type UserWithRole = UserType & {
   role: RoleType
 }
 
-export type WhereUniqueUserType = { id: number } | { email: string }
+export type WhereUniqueUserType =
+  | ({ id: number } & { [K in keyof UserType]?: UserType[K] })
+  | ({ email: string } & { [K in keyof UserType]?: UserType[K] })
 
 type UserIncludeRolePermissionsType = UserType & {
   role: RoleType & {
@@ -31,9 +33,12 @@ export class UserRepository {
     })
   }
 
-  async findUnique(uniqueObject: { email: string } | { id: number }): Promise<UserType | null> {
+  async findUnique(uniqueObject: WhereUniqueUserType): Promise<UserType | null> {
     return await this.prismaService.user.findUnique({
-      where: uniqueObject,
+      where: {
+        ...uniqueObject,
+        deletedAt: null, // Ensure we only fetch non-deleted users
+      },
     })
   }
 
@@ -57,7 +62,7 @@ export class UserRepository {
     return result
   }
 
-  async update(where: { id: number }, data: Partial<UserType>): Promise<UserType> {
+  async update(where: WhereUniqueUserType, data: Partial<UserType>): Promise<UserType> {
     return await this.prismaService.user.update({
       where: {
         id: where.id,

@@ -3,7 +3,7 @@ import { OAuth2Client } from 'google-auth-library'
 import { google } from 'googleapis'
 import { AuthRepository } from 'src/routes/auth/auth.repo'
 import { AuthService } from 'src/routes/auth/auth.service'
-import { RolesService } from 'src/routes/auth/roles.service'
+import { ShareRoleRepository } from 'src/shared/repositories/role.repo'
 import envConfig from 'src/shared/config'
 import { RoleName } from 'src/shared/constants/role.constant'
 import { UserRepository } from 'src/shared/repositories/user.repo'
@@ -17,7 +17,7 @@ export class GoogleService {
     private readonly userRepository: UserRepository,
     private readonly authService: AuthService,
     private readonly authRepository: AuthRepository,
-    private readonly rolesService: RolesService,
+    private readonly shareRolesService: ShareRoleRepository,
     private readonly hashingService: HashingService,
   ) {
     this.oauth2client = new google.auth.OAuth2(
@@ -90,7 +90,7 @@ export class GoogleService {
 
       // 6. If user not exist
       if (!user) {
-        const roleId = await this.rolesService.getClientRoleId()
+        const roleId = await this.shareRolesService.getClientRoleId()
         const randomPassword = uuidv4() // Generate a random password
         const hashedPassword = await this.hashingService.hash(randomPassword)
 
