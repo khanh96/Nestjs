@@ -7,9 +7,10 @@ import { APP_GUARD } from '@nestjs/core'
 import { AuthenticationGuard } from 'src/shared/guards/authentication.guard'
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard'
 import { APIKeyGuard } from 'src/shared/guards/api-key.guard'
-import { UserRepository } from 'src/shared/repositories/user.repo'
+import { ShareUserRepository } from 'src/shared/repositories/user.repo'
 import { EmailService } from 'src/shared/services/email/email.service'
 import { TwoFactorAuthService } from 'src/shared/services/2fa/2fa.service'
+import { ShareRoleRepository } from 'src/shared/repositories/role.repo'
 
 const sharedServices = [
   PrismaService,
@@ -17,7 +18,8 @@ const sharedServices = [
   TokenService,
   AccessTokenGuard,
   APIKeyGuard,
-  UserRepository,
+  ShareUserRepository,
+  ShareRoleRepository,
   EmailService,
   TwoFactorAuthService,
 ]

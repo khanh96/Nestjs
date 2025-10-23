@@ -13,3 +13,7 @@ export function isNotFoundPrismaError(error: any): error is PrismaClientKnownReq
 export function generateOTP(): string {
   return randomInt(100000, 999999).toString()
 }
+
+export function isForeignKeyConstraintPrismaError(error: any): error is PrismaClientKnownRequestError {
+  return error instanceof PrismaClientKnownRequestError && error.code === 'P2003'
+}

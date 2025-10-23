@@ -2,18 +2,18 @@ import { Injectable } from '@nestjs/common'
 import { ChangePasswordBodyType, UpdateProfileBodyType } from 'src/routes/profile/profile.model'
 import { InvalidPasswordException, NotFoundRecordException } from 'src/shared/error'
 import { isUniqueConstraintPrismaError } from 'src/shared/helpers'
-import { UserRepository } from 'src/shared/repositories/user.repo'
+import { ShareUserRepository } from 'src/shared/repositories/user.repo'
 import { HashingService } from 'src/shared/services/hashing/hashing.service'
 
 @Injectable()
 export class ProfileService {
   constructor(
-    private readonly userRepository: UserRepository,
+    private readonly shareUserRepository: ShareUserRepository,
     private readonly hashingService: HashingService,
   ) {}
 
   async getProfile(userId: number) {
-    const user = await this.userRepository.findUniqueIncludeRolePermissions({
+    const user = await this.shareUserRepository.findUniqueIncludeRolePermissions({
       id: userId,
     })
     if (!user) {
@@ -24,7 +24,7 @@ export class ProfileService {
 
   async updateProfile(userId: number, body: UpdateProfileBodyType) {
     try {
-      const user = await this.userRepository.update(
+      const user = await this.shareUserRepository.update(
         {
           id: userId,
         },
@@ -45,7 +45,7 @@ export class ProfileService {
   async changePassword(userId: number, body: ChangePasswordBodyType) {
     const { password, newPassword } = body
     // 1. Check user exists
-    const user = await this.userRepository.findUnique({ id: userId })
+    const user = await this.shareUserRepository.findUnique({ id: userId })
     if (!user) {
       throw NotFoundRecordException
     }
@@ -59,7 +59,7 @@ export class ProfileService {
     const hashedPassword = await this.hashingService.hash(newPassword)
 
     // 4. Update password with new password
-    await this.userRepository.update(
+    await this.shareUserRepository.update(
       { id: userId },
       {
         password: hashedPassword,

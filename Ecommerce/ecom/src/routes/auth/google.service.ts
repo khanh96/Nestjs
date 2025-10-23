@@ -6,7 +6,7 @@ import { AuthService } from 'src/routes/auth/auth.service'
 import { ShareRoleRepository } from 'src/shared/repositories/role.repo'
 import envConfig from 'src/shared/config'
 import { RoleName } from 'src/shared/constants/role.constant'
-import { UserRepository } from 'src/shared/repositories/user.repo'
+import { ShareUserRepository } from 'src/shared/repositories/user.repo'
 import { HashingService } from 'src/shared/services/hashing/hashing.service'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid'
 export class GoogleService {
   private readonly oauth2client: OAuth2Client
   constructor(
-    private readonly userRepository: UserRepository,
+    private readonly shareUserRepository: ShareUserRepository,
     private readonly authService: AuthService,
     private readonly authRepository: AuthRepository,
     private readonly shareRolesService: ShareRoleRepository,
@@ -86,7 +86,7 @@ export class GoogleService {
       if (!email) {
         throw new Error('Email is required but was not provided.')
       }
-      let user = await this.userRepository.findUserByEmailIncludeRole(email)
+      let user = await this.shareUserRepository.findUserByEmailIncludeRole(email)
 
       // 6. If user not exist
       if (!user) {

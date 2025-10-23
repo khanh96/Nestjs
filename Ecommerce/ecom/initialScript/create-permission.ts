@@ -11,13 +11,13 @@ async function createPermissionScript() {
   const server = app.getHttpAdapter().getInstance()
   const router = server.router
 
-  // Lấy ra danh sách các permission đã tồn tại trong cơ sở dữ liệu
+  // 1. Lấy ra danh sách các permission đã tồn tại trong cơ sở dữ liệu
   const permissionsInDb = await prismaService.permission.findMany({
     where: {
       deletedAt: null,
     },
   })
-  // Lấy ra danh sách các route hiện có trong ứng dụng
+  // 2. Lấy ra danh sách các route hiện có trong ứng dụng
   const availableRoutes = router.stack
     .map((layer) => {
       if (layer.route) {
@@ -34,24 +34,24 @@ async function createPermissionScript() {
     })
     .filter((item) => item !== undefined)
 
-  // Tạo object permissionInDbMap với key là [method-path]
+  // 3. Tạo object permissionInDbMap với key là [method-path]
   const permissionInDbMap: Record<string, (typeof permissionsInDb)[0]> = permissionsInDb.reduce((acc, item) => {
     acc[`${item.method}-${item.path}`] = item
     return acc
   }, {})
 
-  // Tạo object availableRoutesMap với key là [method-path]
+  // 4. Tạo object availableRoutesMap với key là [method-path]
   const availableRoutesMap: Record<string, (typeof availableRoutes)[0]> = availableRoutes.reduce((acc, item) => {
     acc[`${item.method}-${item.path}`] = item
     return acc
   }, {})
 
-  // Tìm permissions trong database mà không tồn tại trong availableRoutes
+  // 5. Tìm permissions trong database mà không tồn tại trong availableRoutes
   const permissionsToDelete = permissionsInDb.filter((item) => {
     return !availableRoutesMap[`${item.method}-${item.path}`]
   })
 
-  // Xóa permissions không tồn tại trong availableRoutes
+  // 6. Xóa permissions không tồn tại trong availableRoutes
   if (permissionsToDelete.length > 0) {
     const deleteResult = await prismaService.permission.deleteMany({
       where: {
@@ -65,12 +65,12 @@ async function createPermissionScript() {
     console.log('No permissions to delete')
   }
 
-  // Tìm routes mà không tồn tại trong permissionsInDb
+  // 7. Tìm routes mà không tồn tại trong permissionsInDb
   const routesToAdd = availableRoutes.filter((item) => {
     return !permissionInDbMap[`${item.method}-${item.path}`]
   })
 
-  // Thêm các routes này dưới dạng permissions database
+  // 8. Thêm các routes này dưới dạng permissions database
   if (routesToAdd.length > 0) {
     const permissionsToAdd = await prismaService.permission.createMany({
       data: routesToAdd,
@@ -81,14 +81,14 @@ async function createPermissionScript() {
     console.log('No permissions to add')
   }
 
-  // Lấy lại permissions trong database sau khi thêm mới (hoặc bị xóa)
+  // 9. Lấy lại permissions trong database sau khi thêm mới (hoặc bị xóa)
   const updatedPermissionsInDb = await prismaService.permission.findMany({
     where: {
       deletedAt: null,
     },
   })
 
-  // Cật nhật lại các permissions trong Admin role
+  // 10.Cật nhật lại các permissions trong Admin role
   const adminRole = await prismaService.role.findFirstOrThrow({
     where: {
       name: RoleName.ADMIN,
@@ -102,6 +102,25 @@ async function createPermissionScript() {
     data: {
       permissions: {
         set: updatedPermissionsInDb.map((permission) => ({ id: permission.id })),
+      },
+    },
+  })
+  // 11. Cập nhật lại các permissions trong Client role
+  const clientRole = await prismaService.role.findFirstOrThrow({
+    where: {
+      name: RoleName.CLIENT,
+      deletedAt: null,
+    },
+  })
+  // 12. Chỉ gán các permission có module là PROFILE cho client role
+  const clientProfilePermissions = updatedPermissionsInDb.filter((permission) => permission.module === 'PROFILE')
+  await prismaService.role.update({
+    where: {
+      id: clientRole.id,
+    },
+    data: {
+      permissions: {
+        set: clientProfilePermissions,
       },
     },
   })

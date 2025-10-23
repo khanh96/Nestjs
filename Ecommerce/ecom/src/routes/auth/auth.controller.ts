@@ -22,7 +22,6 @@ import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
 import { UserAgent } from 'src/shared/decorators/user-agent.decorator'
-import { EmptyBodyDTO } from 'src/shared/dto/request.model'
 import { MessageResponseDto } from 'src/shared/dto/response.dto'
 import { AccessTokenPayload } from 'src/shared/types/jwt.type'
 

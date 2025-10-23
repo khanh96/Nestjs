@@ -16,7 +16,7 @@ import { HashingService } from 'src/shared/services/hashing/hashing.service'
 import { TokenService } from 'src/shared/services/token/token.service'
 import ms from 'ms'
 import { addMilliseconds } from 'date-fns'
-import { UserRepository } from 'src/shared/repositories/user.repo'
+import { ShareUserRepository } from 'src/shared/repositories/user.repo'
 import { VerificationCode, VerificationCodeType } from 'src/shared/constants/auth.constant'
 import { EmailService } from 'src/shared/services/email/email.service'
 import { RoleName } from 'src/shared/constants/role.constant'
@@ -45,9 +45,10 @@ export class AuthService {
     private readonly hashingService: HashingService,
     private readonly shareRolesService: ShareRoleRepository,
     private readonly tokenService: TokenService,
-    private readonly userRepository: UserRepository,
+    private readonly shareUserRepository: ShareUserRepository,
     private readonly emailService: EmailService,
     private readonly twoFactorAuthService: TwoFactorAuthService,
+    private readonly shareRoleRepository: ShareRoleRepository,
   ) {}
 
   private async verifyVerificationCode({
@@ -103,7 +104,7 @@ export class AuthService {
 
   async sendOtp(body: SendOtpBodyType) {
     //1. check if email exists in db
-    const user = await this.userRepository.findUnique({ email: body.email })
+    const user = await this.shareUserRepository.findUnique({ email: body.email })
 
     if (body.type === VerificationCode.REGISTER && user) {
       throw EmailAlreadyExistsException
@@ -193,7 +194,7 @@ export class AuthService {
     const email = body.email
     const password = body.password
     // 1. Check if user exists
-    const user = await this.userRepository.findUserByEmailIncludeRole(email)
+    const user = await this.shareUserRepository.findUserByEmailIncludeRole(email)
 
     if (!user) {
       throw AccountNotExistException
@@ -346,7 +347,7 @@ export class AuthService {
     })
 
     //2. Check if user exists in the database
-    const user = await this.userRepository.findUnique({ email })
+    const user = await this.shareUserRepository.findUnique({ email })
     if (!user) {
       throw AccountNotExistException
     }
@@ -354,7 +355,7 @@ export class AuthService {
     const hashedPassword = await this.hashingService.hash(password)
 
     //4. Update user password
-    await this.userRepository.update(
+    await this.shareUserRepository.update(
       { id: user.id },
       {
         password: hashedPassword,
@@ -371,7 +372,7 @@ export class AuthService {
 
   async setupTwoFactorAuth(userId: number) {
     // 1. Check if user exists
-    const user = await this.userRepository.findUnique({ id: userId })
+    const user = await this.shareUserRepository.findUnique({ id: userId })
     if (!user) {
       throw AccountNotExistException
     }
@@ -383,7 +384,7 @@ export class AuthService {
     const { uri, secret } = this.twoFactorAuthService.generateTOTPSecret(user.email)
 
     // 4. Save two-factor authentication secret to the database
-    await this.userRepository.update(
+    await this.shareUserRepository.update(
       { id: userId },
       {
         totpSecret: secret,
@@ -398,7 +399,7 @@ export class AuthService {
 
   async getTwoFactorAuthStatus(userId: number) {
     // 1. Check if user exists
-    const user = await this.userRepository.findUnique({ id: userId })
+    const user = await this.shareUserRepository.findUnique({ id: userId })
     if (!user) {
       throw AccountNotExistException
     }
@@ -417,7 +418,7 @@ export class AuthService {
 
   async disableTwoFactorAuth({ code, totpCode, userId }: DisableTwoFactorAuthBodyType & { userId: number }) {
     // 1. Check if user exists
-    const user = await this.userRepository.findUnique({ id: userId })
+    const user = await this.shareUserRepository.findUnique({ id: userId })
     if (!user) {
       throw AccountNotExistException
     }
@@ -446,7 +447,7 @@ export class AuthService {
     }
 
     // 4. Update user to disable two-factor authentication
-    await this.userRepository.update({ id: userId }, { totpSecret: null, updatedById: userId })
+    await this.shareUserRepository.update({ id: userId }, { totpSecret: null, updatedById: userId })
     return {
       message: 'Two-factor authentication has been disabled successfully',
     }

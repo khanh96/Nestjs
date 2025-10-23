@@ -19,7 +19,7 @@ type UserIncludeRolePermissionsType = UserType & {
 }
 
 @Injectable()
-export class UserRepository {
+export class ShareUserRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findUserByEmailIncludeRole(email: string): Promise<UserWithRole | null> {
