@@ -13,9 +13,10 @@ import { ProfileModule } from './routes/profile/profile.module'
 import { PermissionModule } from './routes/permission/permission.module'
 import { RoleModule } from './routes/role/role.module'
 import { UserModule } from './routes/user/user.module';
+import { MediaModule } from './routes/media/media.module';
 
 @Module({
-  imports: [SharedModule, AuthModule, LanguageModule, ProfileModule, PermissionModule, RoleModule, UserModule], // chứa các module.
+  imports: [SharedModule, AuthModule, LanguageModule, ProfileModule, PermissionModule, RoleModule, UserModule, MediaModule], // chứa các module.
   controllers: [AppController], // chứa controller
   providers: [
     AppService,
