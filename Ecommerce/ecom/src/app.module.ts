@@ -12,11 +12,24 @@ import { LanguageModule } from 'src/routes/language/language.module'
 import { ProfileModule } from './routes/profile/profile.module'
 import { PermissionModule } from './routes/permission/permission.module'
 import { RoleModule } from './routes/role/role.module'
-import { UserModule } from './routes/user/user.module';
-import { MediaModule } from './routes/media/media.module';
+import { UserModule } from './routes/user/user.module'
+import { MediaModule } from './routes/media/media.module'
+import { BrandModule } from './routes/brand/brand.module'
+import { BrandTranslationModule } from 'src/routes/brand/brand-translation/brand-translation.module'
 
 @Module({
-  imports: [SharedModule, AuthModule, LanguageModule, ProfileModule, PermissionModule, RoleModule, UserModule, MediaModule], // chứa các module.
+  imports: [
+    SharedModule,
+    AuthModule,
+    LanguageModule,
+    ProfileModule,
+    PermissionModule,
+    RoleModule,
+    UserModule,
+    MediaModule,
+    BrandModule,
+    BrandTranslationModule,
+  ], // chứa các module.
   controllers: [AppController], // chứa controller
   providers: [
     AppService,
