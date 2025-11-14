@@ -3,10 +3,10 @@ import {
   CreateCategoryBodyType,
   GetAllCategoriesResType,
   UpdateCategoryBodyType,
-  CategoryType,
   CategoryIncludeTranslationType,
 } from 'src/routes/category/category.model'
 import { ALL_LANGUAGES_CODE } from 'src/shared/constants/other.constant'
+import { CategoryType } from 'src/shared/models/category.model'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 @Injectable()

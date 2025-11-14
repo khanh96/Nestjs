@@ -1,19 +1,6 @@
+import { BrandTranslationSchema } from 'src/shared/models/brand-translation.model'
 import { z } from 'zod'
 
-export const BrandTranslationSchema = z.object({
-  id: z.number(),
-  brandId: z.number(),
-  languageId: z.string(),
-  name: z.string().max(500),
-  description: z.string(),
-
-  createdById: z.number().nullable(),
-  updatedById: z.number().nullable(),
-  deletedById: z.number().nullable(),
-  deletedAt: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-})
 export const GetBrandTranslationParamsSchema = z
   .object({
     brandTranslationId: z.coerce.number().int().positive(),
@@ -28,7 +15,6 @@ export const CreateBrandTranslationBodySchema = BrandTranslationSchema.pick({
 }).strict()
 export const UpdateBrandTranslationBodySchema = CreateBrandTranslationBodySchema
 
-export type BrandTranslationType = z.infer<typeof BrandTranslationSchema>
 export type GetBrandTranslationDetailResType = z.infer<typeof GetBrandTranslationDetailResSchema>
 export type CreateBrandTranslationBodyType = z.infer<typeof CreateBrandTranslationBodySchema>
 export type UpdateBrandTranslationBodyType = z.infer<typeof UpdateBrandTranslationBodySchema>

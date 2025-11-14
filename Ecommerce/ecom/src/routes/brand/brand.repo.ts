@@ -3,11 +3,11 @@ import {
   CreateBrandBodyType,
   GetBrandsResType,
   UpdateBrandBodyType,
-  BrandType,
   BrandIncludeTranslationType,
 } from 'src/routes/brand/brand.model'
 import { ALL_LANGUAGES_CODE } from 'src/shared/constants/other.constant'
 import { PaginationQueryType } from 'src/shared/dto/request.dto'
+import { BrandType } from 'src/shared/models/brand.model'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 @Injectable()
