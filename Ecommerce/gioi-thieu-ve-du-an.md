@@ -260,3 +260,95 @@ https://dbml.dbdiagram.io/docs/#schema-definition
       2. Xóa cứng
          1. Remove **language** đó khỏi DB?
    2. Trả về message xóa thành công
+
+#### ROLE
+##### GET all roles
+1. Client call get **API roles**
+   1. Trả về tất cả các role trong DB mà không chưa bị xóa.
+##### GET detail role
+1. Client call get  **API roles/:id**
+   1. Tìm xem có role trong DB không?
+      1. Không: báo lỗi không có role nào tồn tại.
+      2. Có: thì làm tiếp
+   2. Trả về chi tiết roles
+
+##### POST Create role
+1. Client call post **API role** với body: **name**, **description**, **isActive**
+   1. Tạo role
+      1. Có: thì báo lỗi đã tồn tại
+      2. Chưa: Tạo
+   2. Trả về kq tạo
+##### PUT Update role
+1. Client call patch  **API role/:id**
+   1. Tìm xem có role trong DB không?
+      1. Không: báo lỗi không có role nào tồn tại.
+         1. Nếu đã tồn tại role rồi thì cũng báo lỗi đã tồn tại role và không thể tạo thêm
+      2. Có: thì làm tiếp
+   2. Update role với **id**
+   3. Trả về chi tiết role
+##### Delete role
+1. Client call delete  **API role/:id**
+   1. Kiểm tra xem là xóa **mềm** hay xóa **cứng** 
+      1. Xóa mềm:
+         1. Update field **deletedAt** với **id** language đó. 
+      2. Xóa cứng
+         1. Remove **role** đó khỏi DB?
+   2. Trả về message xóa thành công
+
+#### PERMISSION
+- Sử dụng **ActiveRolePermissions** decorator để lấy biến role_permissions sử dụng cho các api cần dùng để check.
+- role_permissions được lấy ở **AccessTokenGuard** khi người dùng gửi authen lên thì tôi có thể lấy được role và permisstion của user đó dựa vào hàm **validateUserPermission**
+
+##### GET all permissions
+1. Client call get **API permissions**
+   1. Trả về tất cả các permisstions trong DB mà không chưa bị xóa.
+##### GET detail permisstion
+1. Client call get  **API permissions/:id**
+   1. Tìm xem có role trong DB không?
+      1. Không: báo lỗi không có role nào tồn tại.
+      2. Có: thì làm tiếp
+   2. Trả về chi tiết permissions
+
+##### POST Create permissions
+1. Client call post **API permissions** với body: **name**, **path**, **method**
+   1. Tạo role
+      1. Có: thì báo lỗi đã tồn tại
+      2. Chưa: Tạo
+   2. Trả về kq tạo
+##### PUT Update permissions
+1. Client call patch  **API permissions/:id**
+   1. Tìm xem có permissions trong DB không?
+      1. Không: báo lỗi không có permissions nào tồn tại.
+         1. Nếu đã tồn tại permissions rồi thì cũng báo lỗi đã tồn tại permissions và không thể tạo thêm
+      2. Có: thì làm tiếp
+   2. Update permissions với **id**
+   3. Trả về chi tiết permissions
+##### Delete permissions
+1. Client call delete  **API permissions/:id**
+   1. Kiểm tra xem là xóa **mềm** hay xóa **cứng** 
+      1. Xóa mềm:
+         1. Update field **deletedAt** với **id** language đó. 
+      2. Xóa cứng
+         1. Remove **permissions** đó khỏi DB?
+   2. Trả về message xóa thành công
+
+#### MEDIA
+- Tạo service S3 **S3Service**
+##### POST Upload file
+1. Client call POST **API media/images/upload** với body: là form-data: **file**
+   1. Đưa file lên S3
+      1. Đẩy file lên s3 dựa vào service s3 (tự viết)
+      2. Xóa file trong thư mục tạm sau khi đã upload lên s3 thành công
+      3. Trả về url của từng file
+##### POST Presigned URL
+1. Client call POST  **API images/presigned-url** với body là **filename**
+   1. Random **filename**
+   2. Tạo presigned url với ramdom name thông qua service presigned
+   3. Trả lại url cho client (Có thể trả hoặc không)
+
+#### BRAND
+#### CATEGORY
+
+
+
+

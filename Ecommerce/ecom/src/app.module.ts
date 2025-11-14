@@ -17,6 +17,7 @@ import { MediaModule } from './routes/media/media.module'
 import { BrandModule } from './routes/brand/brand.module'
 import { BrandTranslationModule } from 'src/routes/brand/brand-translation/brand-translation.module'
 import { I18nModule, QueryResolver, AcceptLanguageResolver, HeaderResolver } from 'nestjs-i18n'
+import { CategoryModule } from './routes/category/category.module';
 import path from 'path'
 
 @Module({
@@ -40,6 +41,7 @@ import path from 'path'
     MediaModule,
     BrandModule,
     BrandTranslationModule,
+    CategoryModule,
   ], // chứa các module.
   controllers: [AppController], // chứa controller
   providers: [

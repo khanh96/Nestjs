@@ -66,7 +66,6 @@ export class S3Service {
   }
 
   createPresignedUrlWithClient = ({ fileName, expiresIn = 10 }: { fileName: string; expiresIn?: number }) => {
-    console.log(fileName)
     const key = fileName
     const client = this.s3Client
     const ContentType = mime.lookup(fileName) || 'application/octet-stream' // xác định content type từ tên file
