@@ -1,10 +1,5 @@
-import { BrandTranslationSchema } from 'src/shared/models/brand-translation.model'
-import { BrandSchema } from 'src/shared/models/brand.model'
+import { BrandIncludeTranslationSchema, BrandSchema } from 'src/shared/models/brand.model'
 import { z } from 'zod'
-
-const BrandIncludeTranslationSchema = BrandSchema.extend({
-  brandTranslations: z.array(BrandTranslationSchema),
-})
 
 export const GetBrandsResSchema = z.object({
   data: z.array(BrandIncludeTranslationSchema),

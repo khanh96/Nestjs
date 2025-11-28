@@ -3,6 +3,8 @@ import { AppModule } from 'src/app.module'
 import { HTTPMethod, RoleName } from 'src/shared/constants/role.constant'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
+const SellerModule = ['AUTH', 'MEDIA', 'MANAGE-PRODUCT', 'PRODUCT-TRANSLATION', 'PROFILE']
+
 const prismaService = new PrismaService()
 
 async function createPermissionScript() {
@@ -87,46 +89,48 @@ async function createPermissionScript() {
       deletedAt: null,
     },
   })
+  // 10.Cật nhật lại các permissions theo role
+  // Admin role
+  const adminPermissionIds = updatedPermissionsInDb.map((item) => ({ id: item.id }))
 
-  // 10.Cật nhật lại các permissions trong Admin role
-  const adminRole = await prismaService.role.findFirstOrThrow({
-    where: {
-      name: RoleName.ADMIN,
-      deletedAt: null,
-    },
-  })
-  await prismaService.role.update({
-    where: {
-      id: adminRole.id,
-    },
-    data: {
-      permissions: {
-        set: updatedPermissionsInDb.map((permission) => ({ id: permission.id })),
-      },
-    },
-  })
-  // 11. Cập nhật lại các permissions trong Client role
-  const clientRole = await prismaService.role.findFirstOrThrow({
-    where: {
-      name: RoleName.CLIENT,
-      deletedAt: null,
-    },
-  })
-  // 12. Chỉ gán các permission có module là PROFILE cho client role
-  const clientProfilePermissions = updatedPermissionsInDb.filter((permission) => permission.module === 'PROFILE')
-  await prismaService.role.update({
-    where: {
-      id: clientRole.id,
-    },
-    data: {
-      permissions: {
-        set: clientProfilePermissions,
-      },
-    },
-  })
+  // Seller role
+  const sellerPermissionIds = updatedPermissionsInDb
+    .filter((permission) => SellerModule.includes(permission.module))
+    .map((item) => ({ id: item.id }))
+
+  // Client role
+  const clientPermissionIds = updatedPermissionsInDb
+    .filter((permission) => permission.module === 'PROFILE')
+    .map((item) => ({ id: item.id }))
+
+  await Promise.all([
+    updateRole(adminPermissionIds, RoleName.ADMIN),
+    updateRole(sellerPermissionIds, RoleName.SELLER),
+    updateRole(clientPermissionIds, RoleName.CLIENT),
+  ])
 
   process.exit(0)
 }
+
+const updateRole = async (permissions: { id: number }[], roleName: string) => {
+  const role = await prismaService.role.findFirstOrThrow({
+    where: {
+      name: roleName,
+      deletedAt: null,
+    },
+  })
+  await prismaService.role.update({
+    where: {
+      id: role.id,
+    },
+    data: {
+      permissions: {
+        set: permissions.map((permission) => ({ id: permission.id })),
+      },
+    },
+  })
+}
+
 createPermissionScript()
   .then((res) => {
     console.log('res->', res)

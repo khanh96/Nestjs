@@ -348,6 +348,76 @@ https://dbml.dbdiagram.io/docs/#schema-definition
 
 #### BRAND
 #### CATEGORY
+#### PRODUCT (variants, sku)
+```ts
+const variants: Variant[] = [
+  {
+    value: 'Màu sắc',
+    options: ['Đen', 'Trắng'],
+  },
+   {
+    value: 'Kích thước',
+    options: ['S', 'M'],
+  },
+]
+
+const skus: [
+    {
+      value: 'Đen-S',
+      price: 0,
+      stock: 100,
+      image: '',
+    },
+    {
+      value: 'Đen-M',
+      price: 0,
+      stock: 100,
+      image: '',
+    },
+    {
+      value: 'Trắng-S',
+      price: 0,
+      stock: 100,
+      image: '',
+    },
+    {
+      value: 'Trắng-M',
+      price: 0,
+      stock: 100,
+      image: '',
+    },
+]
+```
+##### GET list product
+1. Client call get **API products**
+   1. Trả về tất cả các products trong DB mà không chưa bị xóa, sắp xếp theo createAt.
+##### GET detail product
+1. Client call get  **API products/:id**
+   1. Trả về thông tin product
+
+##### POST Create product
+1. Client call post **API products** với body: **CreateProductBodyType**
+   1. Sử dụng các category được tạo từ trước
+   2. Tạo các sku mới khi người dùng gửi variants lên.
+   3. Trả về kq tạo
+##### PUT Update products
+1. Client call patch  **API products/:id**
+   1. SKU đã tồn tại trong DB nhưng không có trong data payload thì sẽ bị xóa
+   2. SKU đã tồn tại trong DB nhưng có trong data payload thì sẽ được update
+   3. SKU không tồn tại trong DB nhưng có trong data payload thì sẽ được thêm mới
+   4. Trả về product đã update
+##### Delete products
+1. Client call delete  **API products/:id**
+   1. Kiểm tra xem là xóa **mềm** hay xóa **cứng** 
+      1. Xóa mềm:
+         1. Update field **deletedAt** với **id** product đó. 
+         2. Update lại **deletedAt** với  **productId** trong bảng sku
+      2. Xóa cứng
+         1. Remove **product** đó khỏi DB?
+         2. Remote các **sku** liên quan đến **productId** đó.
+   2. Trả về message xóa thành công
+
+
 
 
 

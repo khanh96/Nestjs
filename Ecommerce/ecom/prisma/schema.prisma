@@ -13,6 +13,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
 model Language {
   id                   String                @id @db.VarChar(10) // id chinh là mã ngôn ngữ, ví dụ: "en", "vi", "fr"
   name                 String                @db.VarChar(500)

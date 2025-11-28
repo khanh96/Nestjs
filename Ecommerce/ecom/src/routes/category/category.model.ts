@@ -1,10 +1,5 @@
-import { CategoryTranslationSchema } from 'src/shared/models/category-translation.model'
-import { CategorySchema } from 'src/shared/models/category.model'
+import { CategoryIncludeTranslationSchema, CategorySchema } from 'src/shared/models/category.model'
 import { z } from 'zod'
-
-const CategoryIncludeTranslationSchema = CategorySchema.extend({
-  categoryTranslations: z.array(CategoryTranslationSchema),
-})
 
 export const GetAllCategoriesResSchema = z.object({
   data: z.array(CategorySchema),

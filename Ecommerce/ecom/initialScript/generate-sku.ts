@@ -365,15 +365,17 @@ function generateSKUs(variants: Variant[]): SKU[] {
 // Ví dụ sử dụng
 const variants: Variant[] = [
   {
-    value: 'Kích thước',
-    options: ['S', 'M', 'L', 'XL'],
+    value: 'Color',
+    options: ['Black', 'White'],
   },
   {
-    value: 'Màu sắc',
-    options: ['Tím', 'Đen', 'Trắng', 'Xanh'],
+    value: 'Size',
+    options: ['S', 'M'],
   },
 ]
 
 // Test hàm
 const skus = generateSKUs(data.product.variants)
-console.log(skus)
+const skusTest = generateSKUs(variants)
+console.log(JSON.stringify(skusTest))
+// console.log(skus)

@@ -83,13 +83,20 @@ export class AuthService {
       const roleId = await this.shareRolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
 
-      const user = await this.authRepository.createUser({
-        email: body.email,
-        password: hashedPassword,
-        name: body.name,
-        phoneNumber: body.phoneNumber,
-        roleId: roleId,
-      })
+      const [user] = await Promise.all([
+        this.authRepository.createUser({
+          email: body.email,
+          password: hashedPassword,
+          name: body.name,
+          phoneNumber: body.phoneNumber,
+          roleId: roleId,
+        }),
+        this.authRepository.deleteVerificationCode({
+          email: body.email,
+          code: body.code,
+          type: VerificationCode.REGISTER,
+        }),
+      ])
 
       return user
     } catch (error) {
