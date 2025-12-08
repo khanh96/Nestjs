@@ -349,6 +349,9 @@ https://dbml.dbdiagram.io/docs/#schema-definition
 #### BRAND
 #### CATEGORY
 #### PRODUCT (variants, sku)
+- Quản lý theo 2 kiểu role là admin, seller
+- Sẽ có 2 controller: 1 cho admin, 2 cho seller để dễ quản lý các api liên quan đến từng role.
+- 
 ```ts
 const variants: Variant[] = [
   {

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import {
   CreateProductBodyType,
   GetProductDetailResType,
@@ -37,10 +38,17 @@ export class ProductRepo {
     const skip = (page - 1) * limit
     const take = limit
 
-    const where = {
+    let where: Prisma.ProductWhereInput = {
       deletedAt: null,
       createdById: createdById ? createdById : undefined,
-      publishedAt: isPublic ? { lte: new Date(), not: null } : undefined,
+    }
+    if (isPublic) {
+      where.publishedAt = { lte: new Date(), not: null }
+    } else if (isPublic === false) {
+      where = {
+        ...where,
+        OR: [{ publishedAt: { gte: new Date() } }, { publishedAt: null }],
+      }
     }
 
     const [totalItems, data] = await Promise.all([
@@ -70,12 +78,43 @@ export class ProductRepo {
     }
   }
 
-  async findById(id: number, languageId: string): Promise<GetProductDetailResType | null> {
-    return await this.prismaService.product.findUnique({
+  findById(productId: number): Promise<ProductType | null> {
+    return this.prismaService.product.findUnique({
       where: {
-        id,
+        id: productId,
         deletedAt: null,
       },
+    })
+  }
+
+  getDetail({
+    productId,
+    languageId,
+    isPublic,
+  }: {
+    productId: number
+    languageId: string
+    isPublic?: boolean
+  }): Promise<GetProductDetailResType | null> {
+    let where: Prisma.ProductWhereUniqueInput = {
+      id: productId,
+      deletedAt: null,
+    }
+
+    if (isPublic === true) {
+      where.publishedAt = {
+        lte: new Date(),
+        not: null,
+      }
+    } else if (isPublic === false) {
+      where = {
+        ...where,
+        OR: [{ publishedAt: null }, { publishedAt: { gt: new Date() } }],
+      }
+    }
+
+    return this.prismaService.product.findUnique({
+      where: where,
       include: {
         productTranslations: {
           where: languageId === ALL_LANGUAGES_CODE ? { deletedAt: null } : { languageId, deletedAt: null },
@@ -105,6 +144,7 @@ export class ProductRepo {
       },
     })
   }
+
   async delete(
     {
       id,
@@ -117,21 +157,14 @@ export class ProductRepo {
   ): Promise<ProductType> {
     const now = new Date()
     if (isHard) {
-      const [product, sku] = await Promise.all([
-        await this.prismaService.product.delete({
-          where: {
-            id,
-            deletedAt: null,
-          },
-        }),
-        await this.prismaService.sKU.deleteMany({
-          where: {
-            productId: id,
-            deletedAt: null,
-          },
-        }),
-      ])
-      console.log('sku deleted count:', sku.count)
+      // Hard delete product phải xóa thêm sku liên quan đến product nữa. Nhưng thực ra ở đây không cần thiết vì bảng sku đã config cascade qua productId rồi
+      // product             Product              @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+      const product = await this.prismaService.product.delete({
+        where: {
+          id,
+          deletedAt: null,
+        },
+      })
       return product
     }
 
@@ -259,7 +292,7 @@ export class ProductRepo {
     const skusToCreate = skusWithId
       .filter((sku) => sku.id === null)
       .map((sku) => {
-        const { ...data } = sku
+        const { id: skuId, ...data } = sku
         return {
           ...data,
           productId: id,
