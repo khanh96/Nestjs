@@ -50,6 +50,33 @@ export class ProductRepo {
         OR: [{ publishedAt: { gte: new Date() } }, { publishedAt: null }],
       }
     }
+    if (name) {
+      where.name = {
+        contains: name,
+        mode: 'insensitive', // Không phân biệt hoa thường
+      }
+    }
+    if (brandIds && brandIds.length > 0) {
+      where.brandId = { in: brandIds } // only filter những product có brandId nằm trong brandIds truyền vào
+    }
+    if (categories && categories.length > 0) {
+      where.categories = {
+        some: {
+          id: { in: categories }, // only filter những product có ít nhất 1 categoryId nằm trong categories truyền vào
+          deletedAt: null,
+        },
+      }
+    }
+    if (minPrice !== undefined && maxPrice !== undefined) {
+      where.basePrice = {
+        gte: minPrice,
+        lte: maxPrice,
+      }
+    } else if (minPrice !== undefined) {
+      where.basePrice = { gte: minPrice } // greater than equal (lớn hơn hoặc bằng)
+    } else if (maxPrice !== undefined) {
+      where.basePrice = { lte: maxPrice } // less than equal (nhỏ hơn hoặc bằng)
+    }
 
     const [totalItems, data] = await Promise.all([
       this.prismaService.product.count({
