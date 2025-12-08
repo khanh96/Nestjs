@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { OrderStatus, Prisma } from '@prisma/client'
 import {
   CreateProductBodyType,
   GetProductDetailResType,
   GetProductsResType,
   ProductType,
 } from 'src/routes/product/product.model'
-import { ALL_LANGUAGES_CODE } from 'src/shared/constants/other.constant'
+import { ALL_LANGUAGES_CODE, OrderByType, SORT_BY, SortByType } from 'src/shared/constants/other.constant'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 @Injectable()
@@ -23,6 +23,8 @@ export class ProductRepo {
     createdById,
     isPublic,
     languageId,
+    orderBy,
+    sortBy,
   }: {
     limit: number
     page: number
@@ -34,6 +36,8 @@ export class ProductRepo {
     createdById?: number
     isPublic?: boolean
     languageId: string
+    orderBy?: OrderByType
+    sortBy?: SortByType
   }): Promise<GetProductsResType> {
     const skip = (page - 1) * limit
     const take = limit
@@ -78,6 +82,20 @@ export class ProductRepo {
       where.basePrice = { lte: maxPrice } // less than equal (nhỏ hơn hoặc bằng)
     }
 
+    // Mặc định sort theo createdAt mới nhất
+    let calculateOrderBy: Prisma.ProductOrderByWithRelationInput | Prisma.ProductOrderByWithRelationInput[] = {
+      createdAt: orderBy,
+    }
+    if (sortBy === SORT_BY.Price) {
+      calculateOrderBy = { basePrice: orderBy } // Sắp xếp theo basePrice (tiêu chuẩn) của product
+    } else if (sortBy === SORT_BY.Sale) {
+      calculateOrderBy = {
+        orders: {
+          _count: orderBy, // Sắp xếp theo số lượng đơn hàng đã bán của product
+        },
+      }
+    }
+
     const [totalItems, data] = await Promise.all([
       this.prismaService.product.count({
         where: where,
@@ -88,10 +106,14 @@ export class ProductRepo {
           productTranslations: {
             where: languageId === ALL_LANGUAGES_CODE ? { deletedAt: null } : { languageId, deletedAt: null },
           },
+          orders: {
+            where: {
+              deletedAt: null,
+              status: OrderStatus.DELIVERED,
+            },
+          },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: calculateOrderBy,
         skip,
         take,
       }),

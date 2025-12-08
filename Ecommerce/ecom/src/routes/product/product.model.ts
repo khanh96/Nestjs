@@ -1,5 +1,6 @@
 import { ProductTranslationSchema } from 'src/routes/product/product-translation/product-translation.model'
 import { SKUSchema, UpsertSKUBodySchema } from 'src/routes/product/sku.model'
+import { ORDER_BY, SORT_BY } from 'src/shared/constants/other.constant'
 import { BrandIncludeTranslationSchema } from 'src/shared/models/brand.model'
 import { CategoryIncludeTranslationSchema } from 'src/shared/models/category.model'
 import { z } from 'zod'
@@ -100,6 +101,8 @@ export const GetProductsQuerySchema = z.object({
   minPrice: z.coerce.number().positive().optional(),
   maxPrice: z.coerce.number().positive().optional(),
   createdById: z.coerce.number().int().positive().optional(),
+  orderBy: z.enum([ORDER_BY.Asc, ORDER_BY.Desc]).default(ORDER_BY.Desc),
+  sortBy: z.enum([SORT_BY.CreateAt, SORT_BY.Price, SORT_BY.Sale]).default(SORT_BY.CreateAt),
 })
 
 /**
