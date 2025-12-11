@@ -1,8 +1,10 @@
-import { ProductTranslationSchema } from 'src/routes/product/product-translation/product-translation.model'
-import { SKUSchema, UpsertSKUBodySchema } from 'src/routes/product/sku.model'
+import { UpsertSKUBodySchema } from 'src/routes/product/sku.model'
 import { ORDER_BY, SORT_BY } from 'src/shared/constants/other.constant'
 import { BrandIncludeTranslationSchema } from 'src/shared/models/brand.model'
 import { CategoryIncludeTranslationSchema } from 'src/shared/models/category.model'
+import { ProductTranslationSchema } from 'src/shared/models/product-translation.model'
+import { ProductSchema } from 'src/shared/models/product.model'
+import { SKUSchema } from 'src/shared/models/sku.model'
 import { z } from 'zod'
 
 function generateSKUs(variants: VariantsType) {
@@ -58,23 +60,6 @@ export const VariantsSchema = z.array(VariantSchema).superRefine((variants, ctx)
   }
 })
 
-export const ProductSchema = z.object({
-  id: z.number(),
-  publishedAt: z.coerce.date().nullable(),
-  name: z.string().max(500),
-  basePrice: z.number().min(0),
-  virtualPrice: z.number().min(0),
-  brandId: z.number().positive(),
-  images: z.array(z.string()),
-  variants: VariantsSchema, // Json field represented as a record
-
-  createdById: z.number().nullable(),
-  updatedById: z.number().nullable(),
-  deletedById: z.number().nullable(),
-  deletedAt: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-})
 /**
  * Dành cho client và guest
  */

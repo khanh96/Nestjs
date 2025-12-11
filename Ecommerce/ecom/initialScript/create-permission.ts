@@ -3,7 +3,8 @@ import { AppModule } from 'src/app.module'
 import { HTTPMethod, RoleName } from 'src/shared/constants/role.constant'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
-const SellerModule = ['AUTH', 'MEDIA', 'MANAGE-PRODUCT', 'PRODUCT-TRANSLATION', 'PROFILE']
+const SellerModule = ['AUTH', 'MEDIA', 'MANAGE-PRODUCT', 'PRODUCT-TRANSLATION', 'PROFILE', 'CART']
+const ClientModule = ['AUTH', 'MEDIA', 'PRODUCT', 'CART', 'PROFILE']
 
 const prismaService = new PrismaService()
 
@@ -100,7 +101,7 @@ async function createPermissionScript() {
 
   // Client role
   const clientPermissionIds = updatedPermissionsInDb
-    .filter((permission) => permission.module === 'PROFILE')
+    .filter((permission) => ClientModule.includes(permission.module))
     .map((item) => ({ id: item.id }))
 
   await Promise.all([

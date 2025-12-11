@@ -420,7 +420,26 @@ const skus: [
          2. Remote các **sku** liên quan đến **productId** đó.
    2. Trả về message xóa thành công
 
-
+#### Cart 
+##### GET Cart
+1. Client call get cart  **API cart** với body: **PaginationQueryDTO**
+    1. Trả về cart của user đó trong DB.
+##### POST Add item in cart
+1. Client call add item to cart  **API cart** với body: **AddToCartBodyDTO**
+   1. validate sku xem hợp lệ không
+      1. Không: thì show error
+      2. Có: thì trả về item in cart của user
+##### PUT Update item in cart
+1. Client call update item to cart  **API cart** với body: **UpdateCartItemBodyDTO**
+   1. validate sku xem hợp lệ không
+      1. Không: thì show error
+      2. Có: thì trả về item đã được update in cart của user.
+##### POST item in cart
+1. Client call POST item to cart  **API cart** với body: **DeleteCartBodyDTO**
+   1. validate sku xem hợp lệ không
+      1. Không: thì show error
+      2. Có:
+         1. Remove **cartItem** đó khỏi DB?
 
 
 
