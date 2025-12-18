@@ -20,6 +20,7 @@ import { I18nModule, QueryResolver, AcceptLanguageResolver, HeaderResolver } fro
 import { CategoryModule } from './routes/category/category.module';
 import { ProductModule } from './routes/product/product.module';
 import { CartModule } from './routes/cart/cart.module';
+import { OrderModule } from './routes/order/order.module';
 import path from 'path'
 
 @Module({
@@ -46,6 +47,7 @@ import path from 'path'
     CategoryModule,
     ProductModule,
     CartModule,
+    OrderModule,
   ], // chứa các module.
   controllers: [AppController], // chứa controller
   providers: [

@@ -442,5 +442,35 @@ const skus: [
          1. Remove **cartItem** đó khỏi DB?
 
 
+#### Order
+##### GET List Order
+1. Client call get order list  **GET API orders** với body: **GetOrderListQuerySchema**
+   1. Đếm tổng số order
+   2. Lấy list đơn hàng
+   3. Trả về đơn hàng cho user
+
+##### POST Create Order
+1. Client call create order  **API POST orders** với body: **CreateOrderBodyDTO**
+   1. Kiểm tra xem tất cả cartItemIds có tồn tại trong cơ sở dữ liệu hay không
+   2. Kiểm tra số lượng mua có lớn hơn số lượng tồn kho hay không
+   3. Kiểm tra xem tất cả sản phẩm mua có sản phẩm nào bị xóa hay ẩn không
+   4. Kiểm tra xem các skuId trong cartItem gửi lên có thuộc về shopid gửi lên không
+   5. Tạo order
+   6. Xóa cartItem
+##### POST Get detail orders
+1. Client call get order  **API GET order/:orderId** với params: **GetOrderParamsDTO**
+   1. Tìm order của **orderId** , userId đó. và chưa xóa 
+   2. Trả về detail order
+
+##### POST Cancel order
+1. Client call cancel order  **API PUT order/:orderId** với params: **GetOrderParamsDTO**
+   1. Tìm order của **orderId** , userId đó. và chưa xóa 
+      1. Kiểm tra xem order đó có **PENDING_PAYMENT** không?
+         1. Không: throw lỗi không thể cancel order
+         2. Có: Update status order thành **CANCELLED**
+      2. Trả về order đã update
+
+
+
 
 
