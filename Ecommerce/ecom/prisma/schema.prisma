@@ -449,8 +449,8 @@ model Order {
   receiver    Json
   shopId      Int?
   shop        User?                @relation("Shop", fields: [shopId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  // paymentId   Int // TODO:
-  // payment     Payment              @relation(fields: [paymentId], references: [id], onDelete: NoAction, onUpdate: NoAction) // TODO:
+  paymentId   Int
+  payment     Payment              @relation(fields: [paymentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   createdById Int?
   createdBy   User?                @relation("OrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   updatedById Int?
@@ -468,7 +468,7 @@ model Order {
 
 model Payment {
   id        Int           @id @default(autoincrement())
-  // orders    Order[] TODO: 
+  orders    Order[]
   status    PaymentStatus
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
