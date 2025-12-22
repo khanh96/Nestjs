@@ -54,7 +54,6 @@ export class LanguageService {
     }
   }
 
-  // TODO:
   async update({ name, userId, languageId }: UpdateLanguageBodyType & { userId: number; languageId: string }) {
     // 1. Check if lang exists in DB
     const language = await this.languageRepository.findById({ id: languageId })

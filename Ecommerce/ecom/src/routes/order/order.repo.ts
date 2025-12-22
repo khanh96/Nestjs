@@ -17,6 +17,7 @@ import {
   GetOrderListResType,
 } from 'src/routes/order/order.model'
 import { OrderStatus } from 'src/shared/constants/order.constant'
+import { PaymentStatus } from 'src/shared/constants/payment.constant'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
@@ -134,11 +135,18 @@ export class OrderRepo {
 
     // 5. Tạo order và xóa cartItem trong transaction để đảm bảo tính toàn vẹn dữ liệu
     const orders = await this.prismaService.$transaction(async (tx) => {
-      const orders = await Promise.all(
+      // Tạo record payment trước
+      const payment = await this.prismaService.payment.create({
+        data: {
+          status: PaymentStatus.PENDING,
+        },
+      })
+      // Tạo từng order
+      const orders$ = await Promise.all(
         body.map((item) =>
           tx.order.create({
             data: {
-              // paymentId: 1, // TODO: Chưa có payment nên tạm thời để 1
+              paymentId: payment.id,
               userId,
               status: OrderStatus.PENDING_PAYMENT,
               receiver: item.receiver,
@@ -178,13 +186,31 @@ export class OrderRepo {
           }),
         ),
       )
-      await tx.cartItem.deleteMany({
+      // 6. Xóa cartItem và cập nhật lại số lượng sku
+      const cartItem$ = tx.cartItem.deleteMany({
         where: {
           id: {
             in: allBodyCartItemIds,
           },
         },
       })
+      // Cập nhật lại số lượng sku
+      const sku$ = Promise.all(
+        cartItems.map((item) =>
+          tx.sKU.update({
+            where: {
+              id: item.sku.id,
+            },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          }),
+        ),
+      )
+      const [orders] = await Promise.all([orders$, cartItem$, sku$])
+
       return orders
     })
 

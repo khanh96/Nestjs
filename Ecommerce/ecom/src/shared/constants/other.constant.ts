@@ -15,6 +15,9 @@ export const SORT_BY = {
   Sale: 'sale',
 } as const
 
+// Prefix của mã đơn hàng theo yêu cầu từ bên thứ 3 (payment gateway) [SePay]
+export const PREFIX_PAYMENT_CODE = 'DH'
+
 export type OrderByType = (typeof ORDER_BY)[keyof typeof ORDER_BY]
 
 export type SortByType = (typeof SORT_BY)[keyof typeof SORT_BY]

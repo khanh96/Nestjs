@@ -470,7 +470,17 @@ const skus: [
          2. Có: Update status order thành **CANCELLED**
       2. Trả về order đã update
 
-
-
+#### Payment
+![payment](follow-payment.png)
+##### POST Reciver webhook
+1. Server lắng nghe webhook từ third payment
+   1. Thêm thông tin giao dịch vào DB
+   2. Kiểm tra nội dung chuyển khoản và tổng số tiền có khớp hay không?
+      1. Lấy paymentId
+      2. Từ paymentId lấy ra danh sách order.
+      3. Tính số tiền của payment đó.
+      4. Kiểm tra số tiền khớp hay khôn?
+         1. Không: Throw error Price not match
+         2. Có: Cập nhập trạng thái đơn hàng
 
 
