@@ -4,6 +4,7 @@ import { AuthType, AuthTypeDecoratorPayload, ConditionGuard } from 'src/shared/c
 import { AUTH_TYPE_KEY } from 'src/shared/decorators/auth.decorator'
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard'
 import { APIKeyGuard } from 'src/shared/guards/api-key.guard'
+import { PaymentAPIKeyGuard } from 'src/shared/guards/payment-api-key.guard'
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -13,10 +14,12 @@ export class AuthenticationGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly accessTokenGuard: AccessTokenGuard,
     private readonly apiKeyGuard: APIKeyGuard,
+    private readonly paymentAPIKeyGuard: PaymentAPIKeyGuard,
   ) {
     this.authTypeGuardMap = {
-      [AuthType.Bearer]: this.accessTokenGuard,
+      [AuthType.Bearer]: this.accessTokenGuard, // Default khi không có @Auth()
       [AuthType.APIKey]: this.apiKeyGuard,
+      [AuthType.PaymentAPIKey]: this.paymentAPIKeyGuard, // Khi có @Auth([AuthType.PaymentAPIKey])
       [AuthType.None]: { canActivate: () => true }, // No authentication required
     }
   }

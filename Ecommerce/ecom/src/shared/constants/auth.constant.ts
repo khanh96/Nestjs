@@ -5,6 +5,7 @@ export const AuthType = {
   Bearer: 'Bearer',
   APIKey: 'APIKey',
   None: 'None',
+  PaymentAPIKey: 'PaymentAPIKey',
 } as const
 
 export type AuthTypeType = (typeof AuthType)[keyof typeof AuthType]

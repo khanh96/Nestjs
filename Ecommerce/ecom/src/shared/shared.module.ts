@@ -12,6 +12,7 @@ import { EmailService } from 'src/shared/services/email/email.service'
 import { TwoFactorAuthService } from 'src/shared/services/2fa/2fa.service'
 import { ShareRoleRepository } from 'src/shared/repositories/role.repo'
 import { S3Service } from 'src/shared/services/s3/s3.service'
+import { PaymentAPIKeyGuard } from 'src/shared/guards/payment-api-key.guard'
 
 const sharedServices = [
   PrismaService,
@@ -24,6 +25,7 @@ const sharedServices = [
   EmailService,
   TwoFactorAuthService,
   S3Service,
+  PaymentAPIKeyGuard,
 ]
 
 // Để sử dụng được PrismaService ở các module khác, cần phải import SharedModule vào module đó
