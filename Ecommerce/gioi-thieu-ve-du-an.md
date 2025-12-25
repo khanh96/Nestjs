@@ -483,4 +483,10 @@ const skus: [
          1. Không: Throw error Price not match
          2. Có: Cập nhập trạng thái đơn hàng
 
+##### Tự động cancel payment và order sau 24h không thanh toán
+- Sử dụng queues: BullMQ installation.
+- Khi client tạo order. => **OrderService** sẽ **addCancelPaymentJob** của **OrderProducer**
+- Sau 1 khoảng thời gian x. **PaymentConsumer** lắng nghe và thực thị process sau 1 khoảng thời gian x đã set ở **OrderProducer**.
 
+##### Cancel payment job khi nhận payment webhookPayment sepay.
+- Khi nhận **WebhookPayment** từ sepay. Service **PaymentService** call receiver thực hiện **removeJob** từ **PaymentProducer**. 

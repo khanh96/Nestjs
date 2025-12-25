@@ -5,6 +5,7 @@ import { OrderStatus } from 'src/shared/constants/order.constant'
 import { PREFIX_PAYMENT_CODE } from 'src/shared/constants/other.constant'
 import { PaymentStatus } from 'src/shared/constants/payment.constant'
 import { OrderIncludeProductSKUSnapshotType } from 'src/shared/models/order.model'
+import { MessageResponseType } from 'src/shared/models/response.model'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 @Injectable()
@@ -20,7 +21,11 @@ export class PaymentRepository {
     }, 0)
   }
 
-  async receiver(body: WebhookPaymentBodyType) {
+  async receiver(body: WebhookPaymentBodyType): Promise<
+    MessageResponseType & {
+      paymentId: number
+    }
+  > {
     // 1. Thêm thông tin giao dịch vào DB
     // Tham khảo: https://docs.sepay.vn/lap-trinh-webhooks.html
     let amountIn = 0
@@ -99,6 +104,7 @@ export class PaymentRepository {
       }),
     ])
     return {
+      paymentId,
       message: 'Payment success',
     }
   }

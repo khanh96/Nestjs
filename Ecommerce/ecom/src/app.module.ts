@@ -17,15 +17,24 @@ import { MediaModule } from './routes/media/media.module'
 import { BrandModule } from './routes/brand/brand.module'
 import { BrandTranslationModule } from 'src/routes/brand/brand-translation/brand-translation.module'
 import { I18nModule, QueryResolver, AcceptLanguageResolver, HeaderResolver } from 'nestjs-i18n'
-import { CategoryModule } from './routes/category/category.module';
-import { ProductModule } from './routes/product/product.module';
-import { CartModule } from './routes/cart/cart.module';
-import { OrderModule } from './routes/order/order.module';
-import { PaymentModule } from './routes/payment/payment.module';
+import { CategoryModule } from './routes/category/category.module'
+import { ProductModule } from './routes/product/product.module'
+import { CartModule } from './routes/cart/cart.module'
+import { OrderModule } from './routes/order/order.module'
+import { PaymentModule } from './routes/payment/payment.module'
 import path from 'path'
+import { BullModule } from '@nestjs/bullmq'
+import { PaymentConsumer } from 'src/queues/payment.consumer'
+import envConfig from 'src/shared/config'
 
 @Module({
   imports: [
+    BullModule.forRoot({
+      connection: {
+        host: envConfig.REDIS_HOST,
+        port: Number(envConfig.REDIS_PORT),
+      },
+    }),
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
@@ -50,6 +59,7 @@ import path from 'path'
     CartModule,
     OrderModule,
     PaymentModule,
+    PaymentConsumer,
   ], // chứa các module.
   controllers: [AppController], // chứa controller
   providers: [
