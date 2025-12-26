@@ -14,6 +14,7 @@ import { ShareRoleRepository } from 'src/shared/repositories/role.repo'
 import { S3Service } from 'src/shared/services/s3/s3.service'
 import { PaymentAPIKeyGuard } from 'src/shared/guards/payment-api-key.guard'
 import { SharedPaymentRepository } from 'src/shared/repositories/payment.repo'
+import { ShareWebsocketRepository } from 'src/shared/repositories/websocket.repo'
 
 const sharedServices = [
   PrismaService,
@@ -28,6 +29,7 @@ const sharedServices = [
   S3Service,
   PaymentAPIKeyGuard,
   SharedPaymentRepository,
+  ShareWebsocketRepository,
 ]
 
 // Để sử dụng được PrismaService ở các module khác, cần phải import SharedModule vào module đó
