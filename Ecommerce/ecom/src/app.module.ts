@@ -26,6 +26,7 @@ import path from 'path'
 import { BullModule } from '@nestjs/bullmq'
 import { PaymentConsumer } from 'src/queues/payment.consumer'
 import envConfig from 'src/shared/config'
+import { WebsocketModule } from 'src/websockets/websocket.module'
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import envConfig from 'src/shared/config'
     OrderModule,
     PaymentModule,
     PaymentConsumer,
+    WebsocketModule,
   ], // chứa các module.
   controllers: [AppController], // chứa controller
   providers: [
