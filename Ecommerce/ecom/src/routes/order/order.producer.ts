@@ -17,7 +17,10 @@ export class OrderProducer {
     this.paymentQueue
       .getJobs()
       .then((jobs) => {
-        console.log(`Current jobs in ${PAYMENT_QUEUE_NAME} queue:`, jobs)
+        console.log(
+          `Current jobs in ${PAYMENT_QUEUE_NAME} queue:`,
+          jobs.map((job) => job.data),
+        )
       })
       .catch((err) => {
         console.error(`Failed to get jobs from ${PAYMENT_QUEUE_NAME} queue:`, err)
@@ -31,7 +34,7 @@ export class OrderProducer {
         paymentId,
       },
       {
-        delay: 1000 * 60 * 60 * 24, // delay 24 hours
+        delay: 1000 * 10, // delay 24 hours
         jobId: generateCancelPaymentJobId(paymentId),
         removeOnComplete: true,
         removeOnFail: true,

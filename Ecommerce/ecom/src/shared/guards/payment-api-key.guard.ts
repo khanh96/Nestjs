@@ -9,6 +9,8 @@ export class PaymentAPIKeyGuard implements CanActivate {
     const ctx = context.switchToHttp()
     const request = ctx.getRequest<Request>()
     const apiKey = request.headers['payment-api-key']
+    // Theo nhu SePay thì trả payment-api-key trong header Authorization dưới dạng Bearer token
+    // const apiKey = request.headers['Authorization']?.split(' ')[1]
 
     // Check if the token is present
     if (apiKey !== envConfig.PAYMENT_API_KEY) {

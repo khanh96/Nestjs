@@ -8,7 +8,6 @@ export class SharedPaymentRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async cancelPaymentAndOrder(paymentId: number) {
-    console.log('Cancel payment and associated orders for paymentId:', paymentId)
     const payment = await this.prismaService.payment.findUnique({
       where: {
         id: paymentId,

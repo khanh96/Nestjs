@@ -6,7 +6,8 @@ import { generateCancelPaymentJobId } from 'src/shared/helpers'
 
 @Injectable()
 /**
-
+ * PaymentProducer is responsible for managing payment-related jobs in the payment queue.
+ * It provides functionality to remove jobs associated with specific payment IDs.
  */
 export class PaymentProducer {
   constructor(@InjectQueue(PAYMENT_QUEUE_NAME) private paymentQueue: Queue) {

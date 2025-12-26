@@ -1,14 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { CreateOrderBodyType, GetOrderListQueryType } from 'src/routes/order/order.model'
-import { OrderProducer } from 'src/routes/order/order.producer'
 import { OrderRepo } from 'src/routes/order/order.repo'
 
 @Injectable()
 export class OrderService {
-  constructor(
-    private readonly orderRepository: OrderRepo,
-    private readonly orderProducer: OrderProducer,
-  ) {}
+  constructor(private readonly orderRepository: OrderRepo) {}
 
   async list(userId: number, query: GetOrderListQueryType) {
     return this.orderRepository.list(userId, query)
@@ -16,8 +12,6 @@ export class OrderService {
 
   async create(userId: number, body: CreateOrderBodyType) {
     const result = await this.orderRepository.create(userId, body)
-    // Schedule cancel payment job with queue
-    await this.orderProducer.addCancelPaymentJob(result.paymentId)
     return {
       data: result.orders,
     }

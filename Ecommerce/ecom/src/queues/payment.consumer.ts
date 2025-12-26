@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq'
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq'
 import { Job } from 'bullmq'
 import { CANCEL_PAYMENT_JOB_NAME, PAYMENT_QUEUE_NAME } from 'src/shared/constants/queue.constant'
 import { SharedPaymentRepository } from 'src/shared/repositories/payment.repo'
@@ -27,5 +27,35 @@ export class PaymentConsumer extends WorkerHost {
         break
     }
     return {}
+  }
+
+  @OnWorkerEvent('active')
+  onActive(job: Job) {
+    console.log(`Processing job ${job.id} of type ${job.name}`)
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job, result: any) {
+    console.log(`Job ${job.id} completed ${job.name}`, result)
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job, error: Error) {
+    console.log(`Job ${job.id} failed with error: ${error}`)
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(job: Job, error: Error) {
+    console.log(`Job ${job.id} failed with error: ${error}`)
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error) {
+    console.log(`Worker error: ${error}`)
+  }
+
+  @OnWorkerEvent('progress')
+  onProgress(job: Job, progress: number) {
+    console.log(`Job ${job.id} progress: ${progress}`)
   }
 }

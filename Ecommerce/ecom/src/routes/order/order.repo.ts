@@ -16,6 +16,7 @@ import {
   GetOrderListQueryType,
   GetOrderListResType,
 } from 'src/routes/order/order.model'
+import { OrderProducer } from 'src/routes/order/order.producer'
 import { OrderStatus } from 'src/shared/constants/order.constant'
 import { PaymentStatus } from 'src/shared/constants/payment.constant'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
@@ -23,7 +24,10 @@ import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 @Injectable()
 export class OrderRepo {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly orderProducer: OrderProducer,
+  ) {}
 
   async list(userId: number, query: GetOrderListQueryType): Promise<GetOrderListResType> {
     const { page, limit, status } = query
@@ -76,6 +80,7 @@ export class OrderRepo {
     // 4. Kiểm tra xem các skuId trong cartItem gửi lên có thuộc về shopid gửi lên không
     // 5. Tạo order
     // 6. Xóa cartItem
+    // 7. Thêm job huỷ thanh toán vào queue
 
     // 1. flatMap: chuyển từ [{cartItemIds: [1,2,3]}, {cartItemIds: [4,5]}] => [1,2,3,4,5]
     const allBodyCartItemIds = body.flatMap((item) => item.cartItemIds)
@@ -215,7 +220,9 @@ export class OrderRepo {
           }),
         ),
       )
-      const [orders] = await Promise.all([orders$, cartItem$, sku$])
+      // 7. Thêm job huỷ thanh toán vào queue
+      const addCancelPaymentJob$ = await this.orderProducer.addCancelPaymentJob(payment.id)
+      const [orders] = await Promise.all([orders$, cartItem$, sku$, addCancelPaymentJob$])
 
       return [payment.id, orders]
     })
