@@ -25,7 +25,11 @@ export class PaymentRepository {
     }, 0)
   }
 
-  async receiver(body: WebhookPaymentBodyType): Promise<MessageResponseType> {
+  async receiver(body: WebhookPaymentBodyType): Promise<
+    MessageResponseType & {
+      userId: number
+    }
+  > {
     // 1. Thêm thông tin giao dịch vào DB
     // Tham khảo: https://docs.sepay.vn/lap-trinh-webhooks.html
     let amountIn = 0
@@ -45,7 +49,7 @@ export class PaymentRepository {
     if (paymentTransaction) {
       throw new BadRequestException('Transaction already exists')
     }
-    await this.prismaService.$transaction(async (tx) => {
+    const userId = await this.prismaService.$transaction(async (tx) => {
       // Tạo mới bản ghi giao dịch
       await tx.paymentTransaction.create({
         data: {
@@ -85,6 +89,7 @@ export class PaymentRepository {
       if (!payment) {
         throw new BadRequestException(`Cannot find payment with id ${paymentId}`)
       }
+      const userId = payment.orders[0].userId
       const { orders } = payment
       // Tính số tiền của payment đó.
       const totalPrice = this.getTotalPrice(orders)
@@ -115,9 +120,11 @@ export class PaymentRepository {
         }),
         this.paymentProducer.removeJob(paymentId),
       ])
+      return userId
     })
 
     return {
+      userId: userId,
       message: 'Payment success',
     }
   }

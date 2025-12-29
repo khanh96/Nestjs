@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common'
 import { IoAdapter } from '@nestjs/platform-socket.io'
 import { ServerOptions, Server, Socket } from 'socket.io'
-import { ShareWebsocketRepository } from 'src/shared/repositories/websocket.repo'
+import { SharedWebsocketRepository } from 'src/shared/repositories/websocket.repo'
 import { TokenService } from 'src/shared/services/token/token.service'
 
 /**
@@ -16,13 +16,13 @@ const namespaces = ['/', 'payment', 'chat']
 
 export class WebsocketAdapter extends IoAdapter {
   private readonly tokenService: TokenService
-  private readonly shareWebsocketRepository: ShareWebsocketRepository
+  private readonly sharedWebsocketRepository: SharedWebsocketRepository
   constructor(app: INestApplication<any>) {
     super(app)
 
-    // Sử dụng Dependency Injection để lấy instance của TokenService và ShareWebsocketRepository từ NestJS application context.
+    // Sử dụng Dependency Injection để lấy instance của TokenService và SharedWebsocketRepository từ NestJS application context.
     this.tokenService = app.get(TokenService)
-    this.shareWebsocketRepository = app.get(ShareWebsocketRepository)
+    this.sharedWebsocketRepository = app.get(SharedWebsocketRepository)
   }
 
   createIOServer(port: number, options?: ServerOptions) {
@@ -80,12 +80,12 @@ export class WebsocketAdapter extends IoAdapter {
 
     try {
       const { userId } = await this.tokenService.verifyAccessToken(accessToken)
-      await this.shareWebsocketRepository.create({
+      await this.sharedWebsocketRepository.create({
         id: socket.id,
         userId,
       })
       socket.on('disconnect', async () => {
-        await this.shareWebsocketRepository.delete(socket.id).catch(() => {})
+        await this.sharedWebsocketRepository.delete(socket.id).catch(() => {})
       })
       next()
     } catch (error) {

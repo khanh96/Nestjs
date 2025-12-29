@@ -490,3 +490,6 @@ const skus: [
 
 ##### Cancel payment job khi nhận payment webhookPayment sepay.
 - Khi nhận **WebhookPayment** từ sepay. Service **PaymentService** call receiver thực hiện **removeJob** từ **PaymentProducer**. 
+
+##### Nhận thông báo xác nhận thành công khi webhook Thanh toán bên thứ 3 trả.
+- Khi nhận được webhook thanh toán trả về **receiver** sẽ bắn 1 sự kiện `status-payment` để thông báo cho user đã thanh toán thành công.

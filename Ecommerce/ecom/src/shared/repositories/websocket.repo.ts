@@ -2,8 +2,16 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 @Injectable()
-export class ShareWebsocketRepository {
+export class SharedWebsocketRepository {
   constructor(private readonly prismaService: PrismaService) {}
+
+  findMany(userId: number) {
+    return this.prismaService.websocket.findMany({
+      where: {
+        userId,
+      },
+    })
+  }
 
   create(data: { id: string; userId: number }) {
     return this.prismaService.websocket.create({
