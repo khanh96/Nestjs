@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 // import { ZodSerializerInterceptor } from 'nestjs-zod'
 import { HttpExceptionFilter } from 'src/shared/filters/http-exception.filter'
 import { CustomZodSerializerInterceptor } from 'src/shared/interceptor/custom-zod-serializer.interceptor'
@@ -27,9 +27,25 @@ import { BullModule } from '@nestjs/bullmq'
 import { PaymentConsumer } from 'src/queues/payment.consumer'
 import envConfig from 'src/shared/config'
 import { WebsocketModule } from 'src/websockets/websocket.module'
+import { ThrottlerModule } from '@nestjs/throttler'
+import { ThrottlerBehindProxyGuard } from 'src/shared/guards/throttler-behind-proxy.guard'
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          name: 'short',
+          ttl: 60000, // 1 minute
+          limit: 5,
+        },
+        {
+          name: 'long',
+          ttl: 120000, // 2 minutes
+          limit: 7,
+        },
+      ],
+    }),
     BullModule.forRoot({
       connection: {
         host: envConfig.REDIS_HOST,
@@ -77,6 +93,10 @@ import { WebsocketModule } from 'src/websockets/websocket.module'
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter, // Custom exception filter for handling HTTP exceptions
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerBehindProxyGuard, // Throttling guard to limit request rates
     },
   ], // chứa service, repository, provider, .
 })
