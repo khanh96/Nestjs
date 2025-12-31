@@ -1,6 +1,9 @@
 import { INestApplication } from '@nestjs/common'
 import { IoAdapter } from '@nestjs/platform-socket.io'
+import { createAdapter } from '@socket.io/redis-adapter'
+import { createClient } from 'redis'
 import { ServerOptions, Server, Socket } from 'socket.io'
+import envConfig from 'src/shared/config'
 import { generateRoomUserId } from 'src/shared/helpers'
 import { SharedWebsocketRepository } from 'src/shared/repositories/websocket.repo'
 import { TokenService } from 'src/shared/services/token/token.service'
@@ -16,6 +19,7 @@ import { TokenService } from 'src/shared/services/token/token.service'
 const namespaces = ['/', 'payment', 'chat']
 
 export class WebsocketAdapter extends IoAdapter {
+  private adapterConstructor: ReturnType<typeof createAdapter>
   private readonly tokenService: TokenService
   private readonly sharedWebsocketRepository: SharedWebsocketRepository
   constructor(app: INestApplication<any>) {
@@ -95,5 +99,15 @@ export class WebsocketAdapter extends IoAdapter {
     } catch (error) {
       next(error)
     }
+  }
+
+  // Kết nối đến Redis và thiết lập adapter cho Socket.IO server
+  async connectToRedis(): Promise<void> {
+    const pubClient = createClient({ url: `redis://${envConfig.REDIS_HOST}:${envConfig.REDIS_PORT}` })
+    const subClient = pubClient.duplicate()
+
+    await Promise.all([pubClient.connect(), subClient.connect()])
+
+    this.adapterConstructor = createAdapter(pubClient, subClient)
   }
 }
