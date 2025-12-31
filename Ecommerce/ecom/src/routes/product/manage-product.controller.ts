@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
+import { ApiParam } from '@nestjs/swagger'
 import { ZodSerializerDto } from 'nestjs-zod'
 import { ManageProductService } from 'src/routes/product/manage-product.service'
 import {
@@ -32,6 +33,7 @@ export class ManageProductController {
 
   @Get(':productId')
   @ZodSerializerDto(GetProductDetailResDTO)
+  @ApiParam({ name: 'productId', type: Number })
   findById(@Param() params: GetProductParamsDTO, @ActiveUser() user: AccessTokenPayload) {
     return this.manageProductService.getDetail({
       productId: params.productId,
@@ -51,6 +53,7 @@ export class ManageProductController {
 
   @Put(':productId')
   @ZodSerializerDto(ProductDTO)
+  @ApiParam({ name: 'productId', type: Number })
   update(
     @Body() body: UpdateProductBodyDTO,
     @Param() params: GetProductParamsDTO,
@@ -66,6 +69,7 @@ export class ManageProductController {
 
   @Delete(':productId')
   @ZodSerializerDto(MessageResponseDto)
+  @ApiParam({ name: 'productId', type: Number })
   delete(@Param() params: GetProductParamsDTO, @ActiveUser() user: AccessTokenPayload) {
     return this.manageProductService.delete({
       productId: params.productId,

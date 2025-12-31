@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
+import { ApiBearerAuth } from '@nestjs/swagger'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
   CreateUserBodyDTO,
@@ -15,6 +16,7 @@ import { MessageResponseDto } from 'src/shared/dto/response.dto'
 import { GetUserProfileResDto, UpdateProfileResDto } from 'src/shared/dto/user.dto'
 
 @Controller('users')
+@ApiBearerAuth()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

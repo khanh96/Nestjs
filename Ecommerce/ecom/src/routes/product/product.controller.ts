@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Query } from '@nestjs/common'
+import { ApiParam } from '@nestjs/swagger'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
   GetProductDetailResDTO,
@@ -25,6 +26,7 @@ export class ProductController {
 
   @Get(':productId')
   @ZodSerializerDto(GetProductDetailResDTO)
+  @ApiParam({ name: 'productId', type: Number })
   findById(@Param() params: GetProductParamsDTO) {
     return this.productService.getDetail({
       productId: params.productId,

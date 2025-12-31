@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common'
+import { ApiParam } from '@nestjs/swagger'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
   AddToCartBodyDTO,
@@ -36,6 +37,7 @@ export class CartController {
 
   @Put(':cartItemId')
   @ZodSerializerDto(CartItemDTO)
+  @ApiParam({ name: 'cartItemId', type: Number })
   updateCartItem(
     @Param() param: GetCartItemParamsDTO,
     @Body() body: UpdateCartItemBodyDTO,
