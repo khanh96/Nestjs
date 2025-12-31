@@ -4,6 +4,7 @@ import { WebhookPaymentBodyType } from 'src/routes/payment/payment.model'
 import { PaymentRepository } from 'src/routes/payment/payment.repo'
 import { SharedWebsocketRepository } from 'src/shared/repositories/websocket.repo'
 import { Server } from 'socket.io'
+import { generateRoomUserId } from 'src/shared/helpers'
 
 @Injectable()
 @WebSocketGateway({ namespace: 'payment' })
@@ -17,18 +18,22 @@ export class PaymentService {
   async receiver(body: WebhookPaymentBodyType) {
     const { message, userId } = await this.paymentRepository.receiver(body)
 
-    try {
-      // Gửi thông báo qua websocket
-      const websockets = await this.sharedWebsocketRepository.findMany(userId)
-      // Gửi thông báo đến tất cả các websocket của user
-      websockets.forEach((ws) => {
-        this.server.to(ws.id).emit('status-payment', {
-          status: 'success',
-        })
-      })
-    } catch (error) {
-      console.log(error)
-    }
+    this.server.to(generateRoomUserId(userId)).emit('status-payment', {
+      status: 'success',
+    })
+
+    // try {
+    //   // Gửi thông báo qua websocket
+    //   const websockets = await this.sharedWebsocketRepository.findMany(userId)
+    //   // Gửi thông báo đến tất cả các websocket của user
+    //   websockets.forEach((ws) => {
+    //     this.server.to(ws.id).emit('status-payment', {
+    //       status: 'success',
+    //     })
+    //   })
+    // } catch (error) {
+    //   console.log(error)
+    // }
 
     return message
   }
