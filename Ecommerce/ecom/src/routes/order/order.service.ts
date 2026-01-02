@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { CreateOrderBodyType, GetOrderListQueryType } from 'src/routes/order/order.model'
+import { CreateOrderBodyType, GetOrderListQueryType, UpdateStatusOrderBodyType } from 'src/routes/order/order.model'
 import { OrderRepo } from 'src/routes/order/order.repo'
 
 @Injectable()
@@ -23,5 +23,9 @@ export class OrderService {
 
   detail(userId: number, orderId: number) {
     return this.orderRepository.detail(userId, orderId)
+  }
+
+  updateStatus(userId: number, orderId: number, body: UpdateStatusOrderBodyType) {
+    return this.orderRepository.updateStatus(userId, orderId, body)
   }
 }

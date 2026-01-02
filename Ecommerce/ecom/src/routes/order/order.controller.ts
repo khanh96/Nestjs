@@ -9,6 +9,7 @@ import {
   GetOrderListQueryDTO,
   GetOrderListResDTO,
   GetOrderParamsDTO,
+  UpdateStatusOrderBodyDTO,
 } from 'src/routes/order/order.dto'
 import { OrderService } from 'src/routes/order/order.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
@@ -27,6 +28,15 @@ export class OrderController {
   @ZodSerializerDto(CreateOrderResDTO)
   create(@ActiveUser('userId') userId: number, @Body() body: CreateOrderBodyDTO) {
     return this.orderService.create(userId, body)
+  }
+
+  @Put(':orderId/status')
+  updateStatus(
+    @ActiveUser('userId') userId: number,
+    @Param() param: GetOrderParamsDTO,
+    @Body() body: UpdateStatusOrderBodyDTO,
+  ) {
+    return this.orderService.updateStatus(userId, param.orderId, body)
   }
 
   @Get(':orderId')

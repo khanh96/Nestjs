@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import {
   CannotCancelOrderException,
@@ -15,6 +15,7 @@ import {
   GetOrderDetailResType,
   GetOrderListQueryType,
   GetOrderListResType,
+  UpdateStatusOrderBodyType,
 } from 'src/routes/order/order.model'
 import { OrderProducer } from 'src/routes/order/order.producer'
 import { OrderStatus } from 'src/shared/constants/order.constant'
@@ -257,21 +258,49 @@ export class OrderRepo {
           userId,
           deletedAt: null,
         },
+        include: {
+          items: true,
+        },
       })
       if (order.status !== OrderStatus.PENDING_PAYMENT) {
         throw CannotCancelOrderException
       }
-      const updatedOrder = await this.prismaService.order.update({
-        where: {
-          id: orderId,
-          userId,
-          deletedAt: null,
-        },
-        data: {
-          status: OrderStatus.CANCELLED,
-          updatedById: userId,
-        },
+
+      const updatedOrder = await this.prismaService.$transaction(async (tx) => {
+        // Update order status to cancelled
+        const updatedOrder = await tx.order.update({
+          where: {
+            id: orderId,
+            userId,
+            deletedAt: null,
+          },
+          data: {
+            status: OrderStatus.CANCELLED,
+            updatedById: userId,
+          },
+        })
+
+        // Restore stock for cancelled order items
+        await Promise.all(
+          order.items
+            .filter((item) => item.skuId !== null)
+            .map((item) =>
+              tx.sKU.update({
+                where: {
+                  id: item.skuId!,
+                },
+                data: {
+                  stock: {
+                    increment: item.quantity, // Restore stock for cancelled orders
+                  },
+                },
+              }),
+            ),
+        )
+
+        return updatedOrder
       })
+
       return updatedOrder
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
@@ -279,5 +308,60 @@ export class OrderRepo {
       }
       throw error
     }
+  }
+
+  async updateStatus(userId: number, orderId: number, body: UpdateStatusOrderBodyType) {
+    const updatedOrder = await this.prismaService.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: {
+          id: orderId,
+          userId: body.userId,
+          deletedAt: null,
+        },
+        include: {
+          items: true,
+        },
+      })
+      if (!order) {
+        throw OrderNotFoundException
+      }
+
+      // Update order status
+
+      // Handle stock updates based on order status
+      if (body.status !== OrderStatus.DELIVERED) {
+        throw new BadRequestException('Only DELIVERED status is supported for stock update')
+      }
+
+      const updateStatusOrder$ = await tx.order.update({
+        where: {
+          id: orderId,
+          userId: body.userId,
+          deletedAt: null,
+        },
+        data: {
+          status: body.status,
+          updatedById: userId,
+        },
+      })
+
+      const sku$ = Promise.all(
+        order.items.map((item) =>
+          tx.sKU.update({
+            where: {
+              id: item.skuId!,
+            },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          }),
+        ),
+      )
+      const [item, sku] = await Promise.all([updateStatusOrder$, sku$])
+      return item
+    })
+    return updatedOrder
   }
 }

@@ -42,6 +42,11 @@ export const CreateOrderBodySchema = z
   )
   .min(1)
 
+export const UpdateStatusOrderBodySchema = OrderSchema.pick({
+  status: true,
+  userId: true,
+})
+
 export const CreateOrderResSchema = z.object({ data: z.array(OrderSchema) })
 
 export const CancelOrderBodySchema = z.object({})
@@ -59,5 +64,6 @@ export type GetOrderListQueryType = z.infer<typeof GetOrderListQuerySchema>
 export type GetOrderDetailResType = z.infer<typeof GetOrderDetailResSchema>
 export type GetOrderParamsType = z.infer<typeof GetOrderParamsSchema>
 export type CreateOrderBodyType = z.infer<typeof CreateOrderBodySchema>
+export type UpdateStatusOrderBodyType = z.infer<typeof UpdateStatusOrderBodySchema>
 export type CreateOrderResType = z.infer<typeof CreateOrderResSchema>
 export type CancelOrderResType = z.infer<typeof CancelOrderResSchema>

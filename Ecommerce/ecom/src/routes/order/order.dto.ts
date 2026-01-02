@@ -8,6 +8,7 @@ import {
   GetOrderListQuerySchema,
   GetOrderListResSchema,
   GetOrderParamsSchema,
+  UpdateStatusOrderBodySchema,
 } from 'src/routes/order/order.model'
 
 export class GetOrderListResDTO extends createZodDto(GetOrderListResSchema) {}
@@ -17,6 +18,8 @@ export class GetOrderListQueryDTO extends createZodDto(GetOrderListQuerySchema) 
 export class GetOrderDetailResDTO extends createZodDto(GetOrderDetailResSchema) {}
 
 export class CreateOrderBodyDTO extends createZodDto(CreateOrderBodySchema) {}
+
+export class UpdateStatusOrderBodyDTO extends createZodDto(UpdateStatusOrderBodySchema) {}
 
 export class CancelOrderBodyDTO extends createZodDto(CancelOrderBodySchema) {}
 

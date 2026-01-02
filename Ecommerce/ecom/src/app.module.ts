@@ -29,6 +29,7 @@ import envConfig from 'src/shared/config'
 import { WebsocketModule } from 'src/websockets/websocket.module'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { ThrottlerBehindProxyGuard } from 'src/shared/guards/throttler-behind-proxy.guard'
+import { ReviewModule } from './routes/review/review.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { ThrottlerBehindProxyGuard } from 'src/shared/guards/throttler-behind-pr
     PaymentModule,
     PaymentConsumer,
     WebsocketModule,
+    ReviewModule,
   ], // chứa các module.
   controllers: [AppController], // chứa controller
   providers: [

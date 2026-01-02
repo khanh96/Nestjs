@@ -229,8 +229,8 @@ https://dbml.dbdiagram.io/docs/#schema-definition
       3. Update user với **totpCode** = null để tắt 2FA
    2. Thông báo cho user biết là **Vô hiệu hóa mã 2FA**
 
-#### Language
-##### Create language
+### Language
+#### Create language
 1. Client call post **API languages** với body: **id**, **name**
    1. Tạo language
       1. Có: thì báo lỗi đã tồn tại
@@ -261,8 +261,8 @@ https://dbml.dbdiagram.io/docs/#schema-definition
          1. Remove **language** đó khỏi DB?
    2. Trả về message xóa thành công
 
-#### ROLE
-##### GET all roles
+### ROLE
+#### GET all roles
 1. Client call get **API roles**
    1. Trả về tất cả các role trong DB mà không chưa bị xóa.
 ##### GET detail role
@@ -295,27 +295,27 @@ https://dbml.dbdiagram.io/docs/#schema-definition
          1. Remove **role** đó khỏi DB?
    2. Trả về message xóa thành công
 
-#### PERMISSION
+### PERMISSION
 - Sử dụng **ActiveRolePermissions** decorator để lấy biến role_permissions sử dụng cho các api cần dùng để check.
 - role_permissions được lấy ở **AccessTokenGuard** khi người dùng gửi authen lên thì tôi có thể lấy được role và permisstion của user đó dựa vào hàm **validateUserPermission**
 
-##### GET all permissions
+#### GET all permissions
 1. Client call get **API permissions**
    1. Trả về tất cả các permisstions trong DB mà không chưa bị xóa.
-##### GET detail permisstion
+#### GET detail permisstion
 1. Client call get  **API permissions/:id**
    1. Tìm xem có role trong DB không?
       1. Không: báo lỗi không có role nào tồn tại.
       2. Có: thì làm tiếp
    2. Trả về chi tiết permissions
 
-##### POST Create permissions
+#### POST Create permissions
 1. Client call post **API permissions** với body: **name**, **path**, **method**
    1. Tạo role
       1. Có: thì báo lỗi đã tồn tại
       2. Chưa: Tạo
    2. Trả về kq tạo
-##### PUT Update permissions
+#### PUT Update permissions
 1. Client call patch  **API permissions/:id**
    1. Tìm xem có permissions trong DB không?
       1. Không: báo lỗi không có permissions nào tồn tại.
@@ -323,7 +323,7 @@ https://dbml.dbdiagram.io/docs/#schema-definition
       2. Có: thì làm tiếp
    2. Update permissions với **id**
    3. Trả về chi tiết permissions
-##### Delete permissions
+#### Delete permissions
 1. Client call delete  **API permissions/:id**
    1. Kiểm tra xem là xóa **mềm** hay xóa **cứng** 
       1. Xóa mềm:
@@ -332,23 +332,23 @@ https://dbml.dbdiagram.io/docs/#schema-definition
          1. Remove **permissions** đó khỏi DB?
    2. Trả về message xóa thành công
 
-#### MEDIA
+### MEDIA
 - Tạo service S3 **S3Service**
-##### POST Upload file
+#### POST Upload file
 1. Client call POST **API media/images/upload** với body: là form-data: **file**
    1. Đưa file lên S3
       1. Đẩy file lên s3 dựa vào service s3 (tự viết)
       2. Xóa file trong thư mục tạm sau khi đã upload lên s3 thành công
       3. Trả về url của từng file
-##### POST Presigned URL
+#### POST Presigned URL
 1. Client call POST  **API images/presigned-url** với body là **filename**
    1. Random **filename**
    2. Tạo presigned url với ramdom name thông qua service presigned
    3. Trả lại url cho client (Có thể trả hoặc không)
 
-#### BRAND
-#### CATEGORY
-#### PRODUCT (variants, sku)
+### BRAND
+### CATEGORY
+### PRODUCT (variants, sku)
 - Quản lý theo 2 kiểu role là admin, seller
 - Sẽ có 2 controller: 1 cho admin, 2 cho seller để dễ quản lý các api liên quan đến từng role.
 - 
@@ -391,25 +391,25 @@ const skus: [
     },
 ]
 ```
-##### GET list product
+#### GET list product
 1. Client call get **API products**
    1. Trả về tất cả các products trong DB mà không chưa bị xóa, sắp xếp theo createAt.
-##### GET detail product
+#### GET detail product
 1. Client call get  **API products/:id**
    1. Trả về thông tin product
 
-##### POST Create product
+#### POST Create product
 1. Client call post **API products** với body: **CreateProductBodyType**
    1. Sử dụng các category được tạo từ trước
    2. Tạo các sku mới khi người dùng gửi variants lên.
    3. Trả về kq tạo
-##### PUT Update products
+#### PUT Update products
 1. Client call patch  **API products/:id**
    1. SKU đã tồn tại trong DB nhưng không có trong data payload thì sẽ bị xóa
    2. SKU đã tồn tại trong DB nhưng có trong data payload thì sẽ được update
    3. SKU không tồn tại trong DB nhưng có trong data payload thì sẽ được thêm mới
    4. Trả về product đã update
-##### Delete products
+#### Delete products
 1. Client call delete  **API products/:id**
    1. Kiểm tra xem là xóa **mềm** hay xóa **cứng** 
       1. Xóa mềm:
@@ -420,21 +420,21 @@ const skus: [
          2. Remote các **sku** liên quan đến **productId** đó.
    2. Trả về message xóa thành công
 
-#### Cart 
-##### GET Cart
+### Cart 
+#### GET Cart
 1. Client call get cart  **API cart** với body: **PaginationQueryDTO**
     1. Trả về cart của user đó trong DB.
-##### POST Add item in cart
+#### POST Add item in cart
 1. Client call add item to cart  **API cart** với body: **AddToCartBodyDTO**
    1. validate sku xem hợp lệ không
       1. Không: thì show error
       2. Có: thì trả về item in cart của user
-##### PUT Update item in cart
+#### PUT Update item in cart
 1. Client call update item to cart  **API cart** với body: **UpdateCartItemBodyDTO**
    1. validate sku xem hợp lệ không
       1. Không: thì show error
       2. Có: thì trả về item đã được update in cart của user.
-##### POST item in cart
+#### POST item in cart
 1. Client call POST item to cart  **API cart** với body: **DeleteCartBodyDTO**
    1. validate sku xem hợp lệ không
       1. Không: thì show error
@@ -442,14 +442,14 @@ const skus: [
          1. Remove **cartItem** đó khỏi DB?
 
 
-#### Order
-##### GET List Order
+### Order
+#### GET List Order
 1. Client call get order list  **GET API orders** với body: **GetOrderListQuerySchema**
    1. Đếm tổng số order
    2. Lấy list đơn hàng
    3. Trả về đơn hàng cho user
 
-##### POST Create Order
+#### POST Create Order
 1. Client call create order  **API POST orders** với body: **CreateOrderBodyDTO**
    1. Kiểm tra xem tất cả cartItemIds có tồn tại trong cơ sở dữ liệu hay không
    2. Kiểm tra số lượng mua có lớn hơn số lượng tồn kho hay không
@@ -457,12 +457,12 @@ const skus: [
    4. Kiểm tra xem các skuId trong cartItem gửi lên có thuộc về shopid gửi lên không
    5. Tạo order
    6. Xóa cartItem
-##### POST Get detail orders
+#### POST Get detail orders
 1. Client call get order  **API GET order/:orderId** với params: **GetOrderParamsDTO**
    1. Tìm order của **orderId** , userId đó. và chưa xóa 
    2. Trả về detail order
 
-##### POST Cancel order
+#### POST Cancel order
 1. Client call cancel order  **API PUT order/:orderId** với params: **GetOrderParamsDTO**
    1. Tìm order của **orderId** , userId đó. và chưa xóa 
       1. Kiểm tra xem order đó có **PENDING_PAYMENT** không?
@@ -470,9 +470,9 @@ const skus: [
          2. Có: Update status order thành **CANCELLED**
       2. Trả về order đã update
 
-#### Payment
+### Payment
 ![payment](follow-payment.png)
-##### POST Reciver webhook
+#### POST Reciver webhook
 1. Server lắng nghe webhook từ third payment
    1. Thêm thông tin giao dịch vào DB
    2. Kiểm tra nội dung chuyển khoản và tổng số tiền có khớp hay không?
@@ -483,13 +483,52 @@ const skus: [
          1. Không: Throw error Price not match
          2. Có: Cập nhập trạng thái đơn hàng
 
-##### Tự động cancel payment và order sau 24h không thanh toán
+#### Tự động cancel payment và order sau 24h không thanh toán
 - Sử dụng queues: BullMQ installation.
 - Khi client tạo order. => **OrderService** sẽ **addCancelPaymentJob** của **OrderProducer**
 - Sau 1 khoảng thời gian x. **PaymentConsumer** lắng nghe và thực thị process sau 1 khoảng thời gian x đã set ở **OrderProducer**.
 
-##### Cancel payment job khi nhận payment webhookPayment sepay.
+#### Cancel payment job khi nhận payment webhookPayment sepay.
 - Khi nhận **WebhookPayment** từ sepay. Service **PaymentService** call receiver thực hiện **removeJob** từ **PaymentProducer**. 
 
-##### Nhận thông báo xác nhận thành công khi webhook Thanh toán bên thứ 3 trả.
+#### Nhận thông báo xác nhận thành công khi webhook Thanh toán bên thứ 3 trả.
 - Khi nhận được webhook thanh toán trả về **receiver** sẽ bắn 1 sự kiện `status-payment` để thông báo cho user đã thanh toán thành công.
+
+
+### Review
+- Mua đơn hàng mới được review
+- Có thể review nhiều lần / sản phẩm nếu mua nhiều lần
+- 1 order mua 2 sản phẩm thì reivew được 2 sản phẩm
+- Cập nhật review tối đa 1 lần.
+
+#### List review
+- Tìm list review với `GetReviewsParamsDTO` và `PaginationQueryDTO`
+- Trả về list review
+#### Create review
+- Tạo reivew với body `CreateReviewBodyDTO`.
+1. Kiểm tra order có tồn tại or thuộc về user không?
+   1. Không: throw lỗi
+   2. Có: thì Kiểm tra xem đơn hàng đã giao chưa?
+      1. Không: throw lỗi
+      2. Có: Kiểm tra xem đã tạo reivew chưa?
+         1. Có: throw lỗi đã tạo review sp rồi
+         2. Không: tạo review sản phẩm
+      3. Tạo `reviewMedia`
+      4. Trả về review `record` và `reviewMedias`
+#### Update review
+- Tạo reivew với body `UpdateReviewBodyType`.
+1. Kiểm tra order có tồn tại or thuộc về user không?
+   1. Không: throw lỗi
+   2. Có: thì Kiểm tra xem đơn hàng đã giao chưa?
+      1. Có: Kiểm tra đánh gia thuộc về bản khong?
+         1. Có: 
+         2. Kiểm tra xem đã sửa đánh giá lần nào chưa?
+            1. Không: cho phép sửa. 
+            2. Có: Throw lỗi `'Bạn chỉ được phép sửa đánh giá 1 lần`
+         3. Không: throw lỗi `Đánh giá không tồn tại hoặc không thuộc về bạn`
+      2. Không: throw lỗi `Đơn hàng chưa được giao`
+   3. Update review.
+      1. Xóa `reviewMedia`
+      2. Tạo mới `reviewMedia`
+   4. Trả về client `review` và `reviewMedias`
+
