@@ -16,6 +16,8 @@ import { S3Service } from 'src/shared/services/s3/s3.service'
 import { PaymentAPIKeyGuard } from 'src/shared/guards/payment-api-key.guard'
 import { SharedPaymentRepository } from 'src/shared/repositories/payment.repo'
 import { SharedWebsocketRepository } from 'src/shared/repositories/websocket.repo'
+import KeyvRedis, { createKeyv } from '@keyv/redis'
+import envConfig from 'src/shared/config'
 
 const sharedServices = [
   PrismaService,
@@ -48,8 +50,21 @@ const sharedServices = [
   // cần phải import SharedModule vào module đó
   imports: [
     JwtModule,
-    CacheModule.register({
+    CacheModule.registerAsync({
       isGlobal: true,
+      // configure the cache stores
+      useFactory: () => {
+        return {
+          stores: [
+            // new Keyv({
+            //   store: new CacheableMemory({ ttl: 60000, lruSize: 5000 }),
+            // })
+            createKeyv({
+              url: `redis://${envConfig.REDIS_HOST}:${envConfig.REDIS_PORT}`,
+            }),
+          ],
+        }
+      },
     }),
   ],
 })
