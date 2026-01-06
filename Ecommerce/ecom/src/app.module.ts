@@ -29,10 +29,13 @@ import envConfig from 'src/shared/config'
 import { WebsocketModule } from 'src/websockets/websocket.module'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { ThrottlerBehindProxyGuard } from 'src/shared/guards/throttler-behind-proxy.guard'
-import { ReviewModule } from './routes/review/review.module';
+import { ReviewModule } from './routes/review/review.module'
+import { ScheduleModule } from '@nestjs/schedule'
+import { RemoveRefreshTokenCronjob } from 'src/cronjobs/remove-refresh-token.cronjob'
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -100,6 +103,7 @@ import { ReviewModule } from './routes/review/review.module';
       provide: APP_GUARD,
       useClass: ThrottlerBehindProxyGuard, // Throttling guard to limit request rates
     },
+    RemoveRefreshTokenCronjob,
   ], // chứa service, repository, provider, .
 })
 export class AppModule {}

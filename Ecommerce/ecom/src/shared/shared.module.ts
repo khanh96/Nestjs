@@ -1,8 +1,9 @@
+import { CacheModule } from '@nestjs/cache-manager'
+import { JwtModule } from '@nestjs/jwt'
 import { Global, Module } from '@nestjs/common'
 import { HashingService } from 'src/shared/services/hashing/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 import { TokenService } from './services/token/token.service'
-import { JwtModule } from '@nestjs/jwt'
 import { APP_GUARD } from '@nestjs/core'
 import { AuthenticationGuard } from 'src/shared/guards/authentication.guard'
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard'
@@ -45,6 +46,6 @@ const sharedServices = [
   ],
   exports: sharedServices, // để có thể sử dụng PrismaService ở các module khác,
   // cần phải import SharedModule vào module đó
-  imports: [JwtModule],
+  imports: [JwtModule, CacheModule.register()],
 })
 export class SharedModule {}

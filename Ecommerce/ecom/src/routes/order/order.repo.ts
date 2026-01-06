@@ -359,7 +359,7 @@ export class OrderRepo {
           }),
         ),
       )
-      const [item, sku] = await Promise.all([updateStatusOrder$, sku$])
+      const [item] = await Promise.all([updateStatusOrder$, sku$])
       return item
     })
     return updatedOrder

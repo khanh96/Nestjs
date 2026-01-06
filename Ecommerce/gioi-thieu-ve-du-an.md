@@ -531,4 +531,6 @@ const skus: [
       1. Xóa `reviewMedia`
       2. Tạo mới `reviewMedia`
    4. Trả về client `review` và `reviewMedias`
-
+   5. 
+### Dùng cronjob tự xóa refresh token hết hạn (task scheduling)
+#### 1

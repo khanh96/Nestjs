@@ -17,7 +17,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   server: Server
 
   afterInit(server: Server) {
-    console.log('WebSocket server initialized', server)
+    // console.log('WebSocket server initialized', server)
   }
 
   handleConnection(client: any, ...args: any[]) {
