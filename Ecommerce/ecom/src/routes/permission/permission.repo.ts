@@ -74,13 +74,16 @@ export class PermissionRepo {
     id: number
     updatedById: number
     data: UpdatePermissionBodyType
-  }): Promise<PermissionType> {
+  }): Promise<PermissionType & { roles: { id: number; name: string }[] }> {
     const result = await this.prismaService.permission.update({
       where: { id, deletedAt: null },
       data: {
         ...data,
         updatedById,
         updatedAt: new Date(),
+      },
+      include: {
+        roles: true,
       },
     })
     return result
@@ -94,11 +97,14 @@ export class PermissionRepo {
     id: number
     deletedById: number
     isHard?: boolean
-  }): Promise<PermissionType> {
+  }): Promise<PermissionType & { roles: { id: number; name: string }[] }> {
     if (isHard) {
       // If hard delete, remove the record completely
       const result = await this.prismaService.permission.delete({
         where: { id, deletedAt: null },
+        include: {
+          roles: true,
+        },
       })
       return result
     } else {
@@ -108,6 +114,9 @@ export class PermissionRepo {
         data: {
           deletedAt: new Date(),
           deletedById,
+        },
+        include: {
+          roles: true,
         },
       })
       return result

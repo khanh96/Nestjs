@@ -11,6 +11,7 @@ import { Request } from 'express'
 import { keyBy } from 'lodash'
 import { REQUEST_ROLE_PERMISSIONS_KEY, REQUEST_USER_KEY } from 'src/shared/constants/auth.constant'
 import { HTTPMethod } from 'src/shared/constants/role.constant'
+import { generateCacheKeyRole } from 'src/shared/helpers'
 import { RolePermissionsType } from 'src/shared/models/role.model'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 import { TokenService } from 'src/shared/services/token/token.service'
@@ -76,9 +77,11 @@ export class AccessTokenGuard implements CanActivate {
     // const method = request.method as keyof typeof HTTPMethod
     // const path = request.route.path as string
 
-    const cacheKey = `role:${roleId}`
+    const cacheKey = generateCacheKeyRole(roleId)
     // 1. Thử lấy từ cache
     let cachedRole = await this.cacheManager.get<CachedRole>(cacheKey)
+    // Log cached role để biết có lấy được từ cache hay không? Khi nào cache hit, khi nào cache miss.
+    console.log('cachedRole from cache=>', cachedRole)
 
     // 2. Nếu không có trong cache, thì truy vấn từ cơ sở dữ liệu
     if (!cachedRole) {
@@ -107,8 +110,6 @@ export class AccessTokenGuard implements CanActivate {
       ) as CachedRole['permissions']
 
       cachedRole = { ...role, permissions: permissionObject }
-
-      console.log('cachedRole=>', cachedRole)
 
       await this.cacheManager.set(cacheKey, cachedRole, 1000 * 60 * 60) // Cache for 1 hour
 

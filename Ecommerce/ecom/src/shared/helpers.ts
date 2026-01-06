@@ -34,3 +34,7 @@ export const generateCancelPaymentJobId = (paymentId: number) => {
 export const generateRoomUserId = (userId: number) => {
   return `userId-${userId}`
 }
+
+export const generateCacheKeyRole = (roleId: number) => {
+  return `role:${roleId}`
+}

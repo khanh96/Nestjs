@@ -46,6 +46,11 @@ const sharedServices = [
   ],
   exports: sharedServices, // để có thể sử dụng PrismaService ở các module khác,
   // cần phải import SharedModule vào module đó
-  imports: [JwtModule, CacheModule.register()],
+  imports: [
+    JwtModule,
+    CacheModule.register({
+      isGlobal: true,
+    }),
+  ],
 })
 export class SharedModule {}
