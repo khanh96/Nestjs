@@ -5,14 +5,22 @@ import { AppModule } from './app.module'
 import { WebsocketAdapter } from 'src/websockets/websocket.adapter'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { NestExpressApplication } from '@nestjs/platform-express'
+// import { ConsoleLogger } from '@nestjs/common'
+// import { LoggingInterceptor } from 'src/shared/interceptor/logging.interceptor'
+import { Logger } from 'nestjs-pino'
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule)
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true })
+  app.useLogger(app.get(Logger))
+  // Apply global logging interceptor
+  // app.useGlobalInterceptors(new LoggingInterceptor())
 
+  // Use helmet for security headers
   app.use(helmet())
 
   // Trust requests from loopback address (e.g., proxies like Nginx running on the same machine)
   app.set('trust proxy', 'loopback') // Trust requests from the loopback address
+
   // Enable CORS
   app.enableCors()
 

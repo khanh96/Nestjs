@@ -32,9 +32,35 @@ import { ThrottlerBehindProxyGuard } from 'src/shared/guards/throttler-behind-pr
 import { ReviewModule } from './routes/review/review.module'
 import { ScheduleModule } from '@nestjs/schedule'
 import { RemoveRefreshTokenCronjob } from 'src/cronjobs/remove-refresh-token.cronjob'
+import { LoggerModule } from 'nestjs-pino'
+import pino from 'pino'
 
 @Module({
   imports: [
+    LoggerModule.forRoot({
+      pinoHttp: {
+        serializers: {
+          req(req: any) {
+            return {
+              method: req.method,
+              url: req.url,
+              query: req.query,
+              params: req.params,
+            }
+          },
+          res(res: any) {
+            return {
+              statusCode: res.statusCode,
+            }
+          },
+        },
+        stream: pino.destination({
+          dest: path.resolve('logs/app.log'),
+          sync: false, // Asynchronous logging
+          mkdir: true, // Create the directory if it doesn't exist
+        }),
+      },
+    }),
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot({
       throttlers: [
