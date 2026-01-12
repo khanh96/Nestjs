@@ -236,25 +236,26 @@ export class OrderRepo {
         })
         // Cập nhật lại số lượng sku
         for (const item of cartItems) {
-          await tx.sKU.update({
-            where: {
-              id: item.sku.id,
-              // updatedAt: item.sku.updatedAt, // Sử dụng optimistic lock để tránh tình trạng oversell . Đảm bảo không có ai cập nhật SKU trong khi chúng ta đang xử lý
-              // stock: { gte: item.quantity }, // Đảm bảo số lượng tồn kho đủ để trừ
-            },
-            data: {
-              stock: {
-                decrement: item.quantity,
+          await tx.sKU
+            .update({
+              where: {
+                id: item.sku.id,
+                updatedAt: item.sku.updatedAt, // Sử dụng optimistic lock để tránh tình trạng oversell . Đảm bảo không có ai cập nhật SKU trong khi chúng ta đang xử lý
+                stock: { gte: item.quantity }, // Đảm bảo số lượng tồn kho đủ để trừ
               },
-            },
-          })
-          // Sử dụng optimistic lock để tránh tình trạng oversell
-          // .catch((e) => {
-          //   if (isNotFoundPrismaError(e)) {
-          //     throw VersionConflictException
-          //   }
-          //   throw e
-          // })
+              data: {
+                stock: {
+                  decrement: item.quantity,
+                },
+              },
+            })
+            // Sử dụng optimistic lock để tránh tình trạng oversell
+            .catch((e) => {
+              if (isNotFoundPrismaError(e)) {
+                throw VersionConflictException
+              }
+              throw e
+            })
         }
 
         // 7. Thêm job huỷ thanh toán vào queue
