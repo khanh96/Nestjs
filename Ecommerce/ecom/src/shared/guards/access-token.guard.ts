@@ -81,7 +81,7 @@ export class AccessTokenGuard implements CanActivate {
     // 1. Thử lấy từ cache
     let cachedRole = await this.cacheManager.get<CachedRole>(cacheKey)
     // Log cached role để biết có lấy được từ cache hay không? Khi nào cache hit, khi nào cache miss.
-    console.log('cachedRole from cache=>', cachedRole)
+    // console.log('cachedRole from cache=>', cachedRole)
 
     // 2. Nếu không có trong cache, thì truy vấn từ cơ sở dữ liệu
     if (!cachedRole) {

@@ -22,6 +22,7 @@ import { OrderStatus } from 'src/shared/constants/order.constant'
 import { PaymentStatus } from 'src/shared/constants/payment.constant'
 import { VersionConflictException } from 'src/shared/error'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
+import { redlock } from 'src/shared/redis/redis'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
 
 @Injectable()
@@ -74,7 +75,7 @@ export class OrderRepo {
     body: CreateOrderBodyType,
   ): Promise<{
     paymentId: number
-    orders: CreateOrderResType['data']
+    orders: CreateOrderResType['orders']
   }> {
     // 1. Kiểm tra xem tất cả cartItemIds có tồn tại trong cơ sở dữ liệu hay không
     // 2. Kiểm tra số lượng mua có lớn hơn số lượng tồn kho hay không
@@ -85,154 +86,161 @@ export class OrderRepo {
     // 7. Thêm job huỷ thanh toán vào queue
 
     // 1. flatMap: chuyển từ [{cartItemIds: [1,2,3]}, {cartItemIds: [4,5]}] => [1,2,3,4,5]
-    const [paymentId, orders] = await this.prismaService.$transaction(async (tx) => {
-      const allBodyCartItemIds = body.flatMap((item) => item.cartItemIds)
+    const allBodyCartItemIds = body.flatMap((item) => item.cartItemIds)
+    const cartItemsForSKUId = await this.prismaService.cartItem.findMany({
+      where: {
+        id: { in: allBodyCartItemIds },
+        userId: userId,
+      },
+      select: {
+        skuId: true,
+      },
+    })
 
-      // const cartItemsForSKUId = await tx.cartItem.findMany({
-      //   where: {
-      //     id: { in: allBodyCartItemIds },
-      //     userId: userId,
-      //   },
-      //   select: {
-      //     skuId: true,
-      //   },
-      // })
-      // // Khóa các bản ghi SKU để tránh tình trạng oversell
-      // const skuIds = cartItemsForSKUId.map((cartItem) => cartItem.skuId)
-      // // Sử dụng FOR UPDATE để khóa dòng (kỹ thuật Pessimistic lock trong SQL chỉ hoạt động trong transaction)
-      // await tx.$queryRaw`SELECT * FROM "SKU" WHERE id IN (${Prisma.join(skuIds)}) FOR UPDATE`
+    const skuIds = cartItemsForSKUId.map((cartItem) => cartItem.skuId)
 
-      // Lấy thông tin chi tiết của cart items
-      const cartItems = await tx.cartItem.findMany({
-        where: {
-          id: { in: allBodyCartItemIds },
-          userId: userId,
-        },
-        include: {
-          sku: {
-            include: {
-              product: {
-                include: {
-                  productTranslations: true,
+    // Khóa các SKU để tránh tình trạng oversell
+    const locks = await Promise.all(
+      skuIds.map((skuId) => {
+        return redlock.acquire([`lock:sku:${skuId}`], 3000) // Giữ lock trong 3 giây
+      }),
+    )
+
+    try {
+      const [paymentId, orders] = await this.prismaService.$transaction(async (tx) => {
+        // Sử dụng FOR UPDATE để khóa dòng (kỹ thuật Pessimistic lock trong SQL chỉ hoạt động trong transaction)
+        // await tx.$queryRaw`SELECT * FROM "SKU" WHERE id IN (${Prisma.join(skuIds)}) FOR UPDATE`
+
+        // Lấy thông tin chi tiết của cart items
+        const cartItems = await tx.cartItem.findMany({
+          where: {
+            id: { in: allBodyCartItemIds },
+            userId: userId,
+          },
+          include: {
+            sku: {
+              include: {
+                product: {
+                  include: {
+                    productTranslations: true,
+                  },
                 },
               },
             },
           },
-        },
-      })
-
-      // 1. Kiểm tra xem tất cả cartItemIds có tồn tại trong cơ sở dữ liệu hay không
-      if (cartItems.length !== allBodyCartItemIds.length) {
-        throw NotFoundCartItemException
-      }
-
-      // 2. Kiểm tra số lượng mua có lớn hơn số lượng tồn kho hay không
-      const isOutOfStock = cartItems.some((item) => {
-        return item.sku.stock < item.quantity
-      })
-      if (isOutOfStock) {
-        throw OutOfStockSKUException
-      }
-
-      // 3. Kiểm tra xem tất cả sản phẩm mua có sản phẩm nào bị xóa hay ẩn không
-      const isExistNotReadyProduct = cartItems.some(
-        (item) =>
-          item.sku.product.deletedAt !== null ||
-          item.sku.product.publishedAt === null ||
-          item.sku.product.publishedAt > new Date(),
-      )
-      if (isExistNotReadyProduct) {
-        throw ProductNotFoundException
-      }
-      // 4. Kiểm tra xem các skuId trong cartItem gửi lên có thuộc về shopid gửi lên không
-      const cartItemMap = new Map<number, (typeof cartItems)[0]>()
-      cartItems.forEach((item) => {
-        cartItemMap.set(item.id, item)
-      })
-
-      const isValidShop = body.every((item) => {
-        const bodyCartItemIds = item.cartItemIds
-        return bodyCartItemIds.every((cartItemId) => {
-          // Nếu đã đến bước này thì cartItem luôn luôn có giá trị
-          // Vì chúng ta đã so sánh với allBodyCartItems.length ở trên rồi
-          const cartItem = cartItemMap.get(cartItemId)!
-          return item.shopId === cartItem.sku.createdById
         })
-      })
-      if (!isValidShop) {
-        throw SKUNotBelongToShopException
-      }
 
-      // 5. Tạo order và xóa cartItem trong transaction để đảm bảo tính toàn vẹn dữ liệu
+        // 1. Kiểm tra xem tất cả cartItemIds có tồn tại trong cơ sở dữ liệu hay không
+        if (cartItems.length !== allBodyCartItemIds.length) {
+          throw NotFoundCartItemException
+        }
 
-      // Tạo record payment trước
-      const payment = await tx.payment.create({
-        data: {
-          status: PaymentStatus.PENDING,
-        },
-      })
-      // Tạo từng order
-      const orders: CreateOrderResType['data'] = []
-      for (const item of body) {
-        const order = await tx.order.create({
+        // 2. Kiểm tra số lượng mua có lớn hơn số lượng tồn kho hay không
+        const isOutOfStock = cartItems.some((item) => {
+          return item.sku.stock < item.quantity
+        })
+        if (isOutOfStock) {
+          throw OutOfStockSKUException
+        }
+
+        // 3. Kiểm tra xem tất cả sản phẩm mua có sản phẩm nào bị xóa hay ẩn không
+        const isExistNotReadyProduct = cartItems.some(
+          (item) =>
+            item.sku.product.deletedAt !== null ||
+            item.sku.product.publishedAt === null ||
+            item.sku.product.publishedAt > new Date(),
+        )
+        if (isExistNotReadyProduct) {
+          throw ProductNotFoundException
+        }
+        // 4. Kiểm tra xem các skuId trong cartItem gửi lên có thuộc về shopid gửi lên không
+        const cartItemMap = new Map<number, (typeof cartItems)[0]>()
+        cartItems.forEach((item) => {
+          cartItemMap.set(item.id, item)
+        })
+
+        const isValidShop = body.every((item) => {
+          const bodyCartItemIds = item.cartItemIds
+          return bodyCartItemIds.every((cartItemId) => {
+            // Nếu đã đến bước này thì cartItem luôn luôn có giá trị
+            // Vì chúng ta đã so sánh với allBodyCartItems.length ở trên rồi
+            const cartItem = cartItemMap.get(cartItemId)!
+            return item.shopId === cartItem.sku.createdById
+          })
+        })
+        if (!isValidShop) {
+          throw SKUNotBelongToShopException
+        }
+
+        // 5. Tạo order và xóa cartItem trong transaction để đảm bảo tính toàn vẹn dữ liệu
+
+        // Tạo record payment trước
+        const payment = await tx.payment.create({
           data: {
-            userId,
-            status: OrderStatus.PENDING_PAYMENT,
-            receiver: item.receiver,
-            createdById: userId,
-            shopId: item.shopId,
-            paymentId: payment.id,
-            items: {
-              create: item.cartItemIds.map((cartItemId) => {
-                const cartItem = cartItemMap.get(cartItemId)!
-                return {
-                  productName: cartItem.sku.product.name,
-                  skuPrice: cartItem.sku.price,
-                  image: cartItem.sku.image,
-                  skuId: cartItem.sku.id,
-                  skuValue: cartItem.sku.value,
-                  quantity: cartItem.quantity,
-                  productId: cartItem.sku.product.id,
-                  productTranslations: cartItem.sku.product.productTranslations.map((translation) => {
-                    return {
-                      id: translation.id,
-                      name: translation.name,
-                      description: translation.description,
-                      languageId: translation.languageId,
-                    }
-                  }),
-                }
-              }),
+            status: PaymentStatus.PENDING,
+          },
+        })
+        // Tạo từng order
+        const orders: CreateOrderResType['orders'] = []
+        for (const item of body) {
+          const order = await tx.order.create({
+            data: {
+              userId,
+              status: OrderStatus.PENDING_PAYMENT,
+              receiver: item.receiver,
+              createdById: userId,
+              shopId: item.shopId,
+              paymentId: payment.id,
+              items: {
+                create: item.cartItemIds.map((cartItemId) => {
+                  const cartItem = cartItemMap.get(cartItemId)!
+                  return {
+                    productName: cartItem.sku.product.name,
+                    skuPrice: cartItem.sku.price,
+                    image: cartItem.sku.image,
+                    skuId: cartItem.sku.id,
+                    skuValue: cartItem.sku.value,
+                    quantity: cartItem.quantity,
+                    productId: cartItem.sku.product.id,
+                    productTranslations: cartItem.sku.product.productTranslations.map((translation) => {
+                      return {
+                        id: translation.id,
+                        name: translation.name,
+                        description: translation.description,
+                        languageId: translation.languageId,
+                      }
+                    }),
+                  }
+                }),
+              },
+              products: {
+                connect: item.cartItemIds.map((cartItemId) => {
+                  const cartItem = cartItemMap.get(cartItemId)!
+                  return {
+                    id: cartItem.sku.product.id,
+                  }
+                }),
+              },
             },
-            products: {
-              connect: item.cartItemIds.map((cartItemId) => {
-                const cartItem = cartItemMap.get(cartItemId)!
-                return {
-                  id: cartItem.sku.product.id,
-                }
-              }),
+          })
+          orders.push(order)
+        }
+
+        // 6. Xóa cartItem và cập nhật lại số lượng sku
+        await tx.cartItem.deleteMany({
+          where: {
+            id: {
+              in: allBodyCartItemIds,
             },
           },
         })
-        orders.push(order)
-      }
-
-      // 6. Xóa cartItem và cập nhật lại số lượng sku
-      await tx.cartItem.deleteMany({
-        where: {
-          id: {
-            in: allBodyCartItemIds,
-          },
-        },
-      })
-      // Cập nhật lại số lượng sku
-      for (const item of cartItems) {
-        await tx.sKU
-          .update({
+        // Cập nhật lại số lượng sku
+        for (const item of cartItems) {
+          await tx.sKU.update({
             where: {
               id: item.sku.id,
-              updatedAt: item.sku.updatedAt, // Sử dụng optimistic lock để tránh tình trạng oversell . Đảm bảo không có ai cập nhật SKU trong khi chúng ta đang xử lý
-              stock: { gte: item.quantity }, // Đảm bảo số lượng tồn kho đủ để trừ
+              // updatedAt: item.sku.updatedAt, // Sử dụng optimistic lock để tránh tình trạng oversell . Đảm bảo không có ai cập nhật SKU trong khi chúng ta đang xử lý
+              // stock: { gte: item.quantity }, // Đảm bảo số lượng tồn kho đủ để trừ
             },
             data: {
               stock: {
@@ -240,21 +248,26 @@ export class OrderRepo {
               },
             },
           })
-          .catch((e) => {
-            if (isNotFoundPrismaError(e)) {
-              throw VersionConflictException
-            }
-            throw e
-          })
-      }
+          // Sử dụng optimistic lock để tránh tình trạng oversell
+          // .catch((e) => {
+          //   if (isNotFoundPrismaError(e)) {
+          //     throw VersionConflictException
+          //   }
+          //   throw e
+          // })
+        }
 
-      // 7. Thêm job huỷ thanh toán vào queue
-      await this.orderProducer.addCancelPaymentJob(payment.id)
-      return [payment.id, orders]
-    })
-    return {
-      paymentId,
-      orders,
+        // 7. Thêm job huỷ thanh toán vào queue
+        await this.orderProducer.addCancelPaymentJob(payment.id)
+        return [payment.id, orders]
+      })
+      return {
+        paymentId,
+        orders,
+      }
+    } finally {
+      // Giải phóng tất cả các khoá
+      await Promise.all(locks.map((lock) => lock.release().catch(() => {})))
     }
   }
 

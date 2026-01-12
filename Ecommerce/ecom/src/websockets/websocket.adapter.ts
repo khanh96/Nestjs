@@ -72,7 +72,7 @@ export class WebsocketAdapter extends IoAdapter {
   async authMiddleware(socket: Socket, next: (err?: any) => void) {
     const { authorization } = socket.handshake.headers
 
-    console.log(socket.handshake.headers)
+    // console.log(socket.handshake.headers)
 
     if (!authorization) {
       return next(new Error('Authorization header is missing'))

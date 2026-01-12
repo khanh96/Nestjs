@@ -47,7 +47,7 @@ export const UpdateStatusOrderBodySchema = OrderSchema.pick({
   userId: true,
 })
 
-export const CreateOrderResSchema = z.object({ data: z.array(OrderSchema) })
+export const CreateOrderResSchema = z.object({ orders: z.array(OrderSchema), paymentId: z.number() })
 
 export const CancelOrderBodySchema = z.object({})
 

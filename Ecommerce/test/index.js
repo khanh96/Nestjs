@@ -2,8 +2,8 @@ const axios = require('axios')
 
 const ENDPOINT = 'http://localhost:3000/orders'
 
-const accessTokenUser1 = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjgsImRldmljZUlkIjoxMTEsInJvbGVJZCI6Mywicm9sZU5hbWUiOiJTRUxMRVIiLCJ1dWlkIjoiMWY4Mjc4YmItNDM0MC00MzQ2LTg5ODAtM2RjM2M5ZTI2MzIwIiwiaWF0IjoxNzY3OTUyMzQ3LCJleHAiOjE3Njc5NTU5NDd9.b0CyKGO00fjsBQQI6EgaoAZePvbDFfROrWGN1gKDI4g`
-const accessTokenUser2 = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsImRldmljZUlkIjoxMTIsInJvbGVJZCI6Mywicm9sZU5hbWUiOiJTRUxMRVIiLCJ1dWlkIjoiM2JiMTViMjEtNGFmOS00Yjc4LTg3NWItMTNjMmYwMjBmYmZlIiwiaWF0IjoxNzY3OTUyNDY0LCJleHAiOjE3Njc5NTYwNjR9.OJHVvGSniyui_-8GJ1zdnujSuwMc_H6Y1RZdWxjLZgY`
+const accessTokenUser1 = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjgsImRldmljZUlkIjoxMTMsInJvbGVJZCI6Mywicm9sZU5hbWUiOiJTRUxMRVIiLCJ1dWlkIjoiYmRkZGI0YWEtY2E3NC00YjMxLWI4ZDctYjA4ODBmOWFlNzMxIiwiaWF0IjoxNzY4MjEwNzYxLCJleHAiOjE3NjgyMTQzNjF9.SSntnYg7_4kk-Limf6oVApxXKTOozbz3E8LJdHC-0fE`
+const accessTokenUser2 = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsImRldmljZUlkIjoxMTQsInJvbGVJZCI6Mywicm9sZU5hbWUiOiJTRUxMRVIiLCJ1dWlkIjoiZGU0MGU2MDQtNTBmMS00ODc4LTkzMjItNTBkMjM3YzQ3Nzg2IiwiaWF0IjoxNzY4MjEwODA0LCJleHAiOjE3NjgyMTQ0MDR9.5dCz9QN2vwoa5wlfScbqFV_lSqPUa06B765AYGUXpKg`
 
 const baseHeaders = {
   'Content-Type': 'application/json'
@@ -22,11 +22,11 @@ const headers2 = {
 const orderBody1 = [
   {
     shopId: 5,
-    cartItemIds: [40],
+    cartItemIds: [45],
     receiver: {
       name: 'Lucian',
-      phone: '0947836128',
-      address: "HN"
+      phone: '0905123456',
+      address: 'Ha noi'
     }
   }
 ]
@@ -34,27 +34,34 @@ const orderBody1 = [
 const orderBody2 = [
   {
     shopId: 5,
-    cartItemIds: [39],
+    cartItemIds: [43],
     receiver: {
       name: 'Lucian',
-      phone: '0947836128',
-      address: "HN"
+      phone: '0905123456',
+      address: 'Ha noi'
     }
   }
 ]
 
-const order1$ = axios
-  .post(ENDPOINT, orderBody1, { headers: headers1 })
-  .catch((e) => {
-    console.log('Error in order1:', e)
-  })
-const order2$ = axios
-  .post(ENDPOINT, orderBody2, { headers: headers2 })
-  .catch((e) => {
-    console.log('Error in order2:', e)
-  })
+// const order1$ =
 
-Promise.all([order1$, order2$]).then(([res1, res2]) => {
-  console.log('Order 1 response:', res1.data)
-  console.log('Order 2 response:', res2.data)
-})
+// const order2$ =
+
+Promise.all([
+  axios
+    .post(ENDPOINT, orderBody1, { headers: headers1 })
+    .then((res) => {
+      console.log('Order 1 response:', res.data)
+    })
+    .catch((e) => {
+      console.log('Error in order 1:', e.response.data)
+    }),
+  axios
+    .post(ENDPOINT, orderBody2, { headers: headers2 })
+    .then((res) => {
+      console.log('Order 2 response:', res.data)
+    })
+    .catch((e) => {
+      console.log('Error in order 2:', e.response.data)
+    })
+])

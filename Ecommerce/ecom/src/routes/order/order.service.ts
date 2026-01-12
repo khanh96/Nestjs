@@ -12,9 +12,7 @@ export class OrderService {
 
   async create(userId: number, body: CreateOrderBodyType) {
     const result = await this.orderRepository.create(userId, body)
-    return {
-      data: result.orders,
-    }
+    return result
   }
 
   cancel(userId: number, orderId: number) {
