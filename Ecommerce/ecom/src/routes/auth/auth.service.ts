@@ -48,7 +48,6 @@ export class AuthService {
     private readonly shareUserRepository: ShareUserRepository,
     private readonly emailService: EmailService,
     private readonly twoFactorAuthService: TwoFactorAuthService,
-    private readonly shareRoleRepository: ShareRoleRepository,
   ) {}
 
   private async verifyVerificationCode({
@@ -66,7 +65,7 @@ export class AuthService {
       type: type,
     })
 
-    if (!verificationCode) {
+    if (!verificationCode || verificationCode.code !== code) {
       throw InvalidOTPException
     }
     if (verificationCode.expiresAt < new Date()) {
