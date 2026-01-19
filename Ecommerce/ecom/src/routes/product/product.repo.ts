@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { OrderStatus, Prisma } from '@prisma/client'
+import { Prisma, OrderStatus } from 'src/generated/prisma/client'
 import {
   CreateProductBodyType,
   GetProductDetailResType,
@@ -218,7 +218,7 @@ export class ProductRepo {
     }
 
     const [product] = await Promise.all([
-      await this.prismaService.product.update({
+      this.prismaService.product.update({
         where: {
           id,
           deletedAt: null,
@@ -228,7 +228,7 @@ export class ProductRepo {
           deletedById,
         },
       }),
-      await this.prismaService.sKU.updateMany({
+      this.prismaService.sKU.updateMany({
         where: {
           productId: id,
           deletedAt: null,

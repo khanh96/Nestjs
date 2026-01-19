@@ -14,7 +14,6 @@ import envConfig from 'src/shared/config'
 import { generateOTP, isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { HashingService } from 'src/shared/services/hashing/hashing.service'
 import { TokenService } from 'src/shared/services/token/token.service'
-import ms from 'ms'
 import { addMilliseconds } from 'date-fns'
 import { ShareUserRepository } from 'src/shared/repositories/user.repo'
 import { VerificationCode, VerificationCodeType } from 'src/shared/constants/auth.constant'
@@ -33,6 +32,7 @@ import {
 import { TwoFactorAuthService } from 'src/shared/services/2fa/2fa.service'
 import { InvalidPasswordException } from 'src/shared/error'
 import { ShareRoleRepository } from 'src/shared/repositories/role.repo'
+import ms from 'ms'
 
 /**
  * Sử dụng file .service để xử lý các nghiệp vụ
@@ -131,7 +131,7 @@ export class AuthService {
     await this.authRepository.createVerificationCode({
       email: body.email,
       code: otpCode,
-      expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)), // Thời gian hiện tại tạo otp + 30s
+      expiresAt: addMilliseconds(new Date(), Number(envConfig.OTP_EXPIRES_IN)), // Thời gian hiện tại tạo otp + 30s
       type: body.type,
     })
     //4. send otp to email using Resend

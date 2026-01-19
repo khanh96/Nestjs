@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { Prisma } from 'src/generated/prisma/client'
 import {
   CartItemNotFoundException,
   InvalidQuantityException,
@@ -192,7 +192,7 @@ export class CartRepo {
         AND "Product"."publishedAt" <= NOW()
       GROUP BY "Product"."createdById"
     `
-    const data$ = await this.prismaService.$queryRaw<CartItemDetailType[]>`
+    const data$ = this.prismaService.$queryRaw<CartItemDetailType[]>`
      SELECT
        "Product"."createdById",
        json_agg(
