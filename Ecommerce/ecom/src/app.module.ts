@@ -22,7 +22,7 @@ import { ProductModule } from './routes/product/product.module'
 import { CartModule } from './routes/cart/cart.module'
 import { OrderModule } from './routes/order/order.module'
 import { PaymentModule } from './routes/payment/payment.module'
-import path from 'path'
+import path, { join } from 'path'
 import { BullModule } from '@nestjs/bullmq'
 import { PaymentConsumer } from 'src/queues/payment.consumer'
 import envConfig from 'src/shared/config'
@@ -34,9 +34,18 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { RemoveRefreshTokenCronjob } from 'src/cronjobs/remove-refresh-token.cronjob'
 import { LoggerModule } from 'nestjs-pino'
 import pino from 'pino'
+import { GraphQLModule } from '@nestjs/graphql'
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 
 @Module({
   imports: [
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      graphiql: true,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      sortSchema: true,
+      context: ({ req, res }) => ({ req, res }),
+    }),
     LoggerModule.forRoot({
       pinoHttp: {
         serializers: {

@@ -1,5 +1,6 @@
 import { CallHandler, ExecutionContext, Injectable, StreamableFile } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+import { GqlExecutionContext } from '@nestjs/graphql'
 import { validate, ZodSerializationException, ZodSerializerInterceptor } from 'nestjs-zod'
 import { map, Observable } from 'rxjs'
 import { MessageKey } from 'src/shared/decorators/message.decorator'
@@ -19,6 +20,12 @@ export class CustomZodSerializerInterceptor extends ZodSerializerInterceptor {
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    // Bỏ qua interceptor cho GraphQL requests
+    const gqlContext = GqlExecutionContext.create(context)
+    if (gqlContext.getType<string>() === 'graphql') {
+      return next.handle()
+    }
+
     const responseSchema = this.getContextResponseSchema(context)
     const statusCode = context.switchToHttp().getResponse().statusCode
     // Lấy message từ decorator chưa xử lý nếu mà controller chưa response về message. [NOTE: có thể có hoặc không]

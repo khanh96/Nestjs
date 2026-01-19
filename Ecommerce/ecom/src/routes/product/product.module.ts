@@ -5,10 +5,11 @@ import { ProductTranslationModule } from './product-translation/product-translat
 import { ProductRepo } from 'src/routes/product/product.repo'
 import { ManageProductController } from 'src/routes/product/manage-product.controller'
 import { ManageProductService } from 'src/routes/product/manage-product.service'
+import { ManageProductResolver } from 'src/routes/product/graphql/manage-product.resolve'
 
 @Module({
   controllers: [ProductController, ManageProductController],
-  providers: [ProductService, ProductRepo, ManageProductService],
+  providers: [ProductService, ProductRepo, ManageProductService, ManageProductResolver],
   imports: [ProductTranslationModule],
 })
 export class ProductModule {}

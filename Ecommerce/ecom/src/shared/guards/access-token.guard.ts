@@ -7,6 +7,7 @@ import {
   ForbiddenException,
   Inject,
 } from '@nestjs/common'
+import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql'
 import { Request } from 'express'
 import { keyBy } from 'lodash'
 import { REQUEST_ROLE_PERMISSIONS_KEY, REQUEST_USER_KEY } from 'src/shared/constants/auth.constant'
@@ -33,14 +34,23 @@ export class AccessTokenGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const ctx = context.switchToHttp()
-    const request = ctx.getRequest<Request>()
+    // Determine if the request is HTTP or GraphQL
+    let request: any
+    let isGraphql: boolean = false
+    if (context.getType<GqlContextType>() === 'graphql') {
+      // Handle GraphQL request
+      const gqlContext = GqlExecutionContext.create(context)
+      request = gqlContext.getContext().req
+      isGraphql = true
+    } else {
+      request = context.switchToHttp().getRequest()
+    }
 
     // Extract and validate the access token
     const decodedAccessToken = await this.extractAndValidateToken(request)
 
     // Optionally, Check user permissions or roles if needed
-    await this.validateUserPermission(decodedAccessToken, request)
+    await this.validateUserPermission(decodedAccessToken, request, isGraphql)
     return true
   }
 
@@ -72,10 +82,14 @@ export class AccessTokenGuard implements CanActivate {
     return accessToken
   }
 
-  private async validateUserPermission(decodedAccessToken: AccessTokenPayload, request: Request): Promise<void> {
+  private async validateUserPermission(
+    decodedAccessToken: AccessTokenPayload,
+    request: Request,
+    isGraphql: boolean,
+  ): Promise<void> {
     const roleId = decodedAccessToken.roleId
-    // const method = request.method as keyof typeof HTTPMethod
-    // const path = request.route.path as string
+    const path: string = isGraphql ? request.baseUrl : request.route.path
+    const method = request.method as keyof typeof HTTPMethod
 
     const cacheKey = generateCacheKeyRole(roleId)
     // 1. Thử lấy từ cache
@@ -115,6 +129,12 @@ export class AccessTokenGuard implements CanActivate {
 
       // Attach role permissions to request object for later use
       request[REQUEST_ROLE_PERMISSIONS_KEY] = role
+    }
+    // 3. Kiểm tra permission
+    const canAccess: Permission | undefined = cachedRole.permissions[`${path}:${method}`]
+
+    if (!canAccess) {
+      throw new ForbiddenException()
     }
   }
 }
