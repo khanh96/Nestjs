@@ -1,5 +1,5 @@
 import { UseGuards } from '@nestjs/common'
-import { Args, Query, Resolver } from '@nestjs/graphql'
+import { Args, Int, Query, Resolver } from '@nestjs/graphql'
 import { GetProducts, GetProductsQuery } from 'src/routes/product/graphql/product.entity'
 import { ProductService } from 'src/routes/product/product.service'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
@@ -11,10 +11,9 @@ import { GqlThrottlerGuard } from 'src/shared/guards/gql-throttler.guard'
 export class ProductResolver {
   constructor(private readonly productService: ProductService) {}
 
-  @Query(() => [GetProducts], { name: 'products' })
-  findAll(@Args() args: GetProductsQuery) {
-    console.log('AAA')
-    return this.productService.list({
+  @Query(() => GetProducts, { name: 'products' })
+  async findAll(@Args() args: GetProductsQuery) {
+    return await this.productService.list({
       query: args,
     })
   }
@@ -23,10 +22,10 @@ export class ProductResolver {
     return 'test'
   }
 
-  // @Query(() => GetProducts, { name: 'product' })
-  // findOne(@Args('id', { type: () => Int }) id: number) {
-  //   return this.productService.getDetail({
-  //     productId: id,
-  //   })
-  // }
+  @Query(() => GetProducts, { name: 'product' })
+  findOne(@Args('id', { type: () => Int }) id: number) {
+    return this.productService.getDetail({
+      productId: id,
+    })
+  }
 }

@@ -57,10 +57,43 @@ type CategoryTranslation {
   updatedById: Int
 }
 
+input CreateProductInput {
+  basePrice: Float!
+  brandId: Int!
+  categories: [Int!]!
+  images: [String!]!
+  name: String!
+  publishedAt: DateTime
+  skus: [UpsertSKUInput!]!
+  variants: [ProductVariantInput!]!
+  virtualPrice: Float!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type GetProduct {
+  basePrice: Float!
+  brand: BrandIncludeTranslation!
+  brandId: Int!
+  categories: [CategoryIncludeTranslation!]!
+  createdAt: DateTime!
+  createdById: Int!
+  deletedAt: DateTime
+  deletedById: Int
+  id: Int!
+  images: [String!]!
+  name: String!
+  productTranslations: [ProductTranslation!]!
+  publishedAt: DateTime
+  skus: [SKU!]!
+  updatedAt: DateTime!
+  updatedById: Int
+  variants: [ProductVariant!]!
+  virtualPrice: Float!
+}
 
 type GetProducts {
   data: [ProductIncludeTranslation!]!
@@ -68,6 +101,10 @@ type GetProducts {
   page: Int!
   totalItems: Int!
   totalPages: Int!
+}
+
+type Mutation {
+  createProduct(createProductInput: CreateProductInput!): GetProduct!
 }
 
 type ProductIncludeTranslation {
@@ -107,8 +144,15 @@ type ProductVariant {
   value: String!
 }
 
+input ProductVariantInput {
+  options: [String!]!
+  value: String!
+}
+
 type Query {
-  products: [GetProducts!]!
+  manageProducts(brandIds: [Int!], categories: [Int!], createdById: Int!, isPublic: Boolean, limit: Int = 10, maxPrice: Float, minPrice: Float, name: String, orderBy: String = "desc", page: Int = 1, sortBy: String = "createdAt"): GetProducts!
+  product(id: Int!): GetProducts!
+  products(brandIds: [Int!], categories: [Int!], createdById: Int, limit: Int = 10, maxPrice: Float, minPrice: Float, name: String, orderBy: String = "desc", page: Int = 1, sortBy: String = "createdAt"): GetProducts!
   test: String!
 }
 
@@ -124,5 +168,12 @@ type SKU {
   stock: Int!
   updatedAt: DateTime!
   updatedById: Int
+  value: String!
+}
+
+input UpsertSKUInput {
+  image: String!
+  price: Float!
+  stock: Int!
   value: String!
 }

@@ -8,6 +8,7 @@ import { ProductIncludeTranslation } from 'src/shared/graphql-entities/product-t
 import { Product, ProductVariantInput } from 'src/shared/graphql-entities/product.entity'
 import { SKU } from 'src/shared/graphql-entities/sku.entity'
 
+@ArgsType()
 export class GetProductsQuery {
   @Field(() => Int, { defaultValue: 1, nullable: true })
   page: number
