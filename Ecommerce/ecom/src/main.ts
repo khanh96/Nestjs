@@ -1,5 +1,4 @@
 import helmet from 'helmet'
-import { patchNestJsSwagger } from 'nestjs-zod'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { WebsocketAdapter } from 'src/websockets/websocket.adapter'
@@ -8,6 +7,7 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 // import { ConsoleLogger } from '@nestjs/common'
 // import { LoggingInterceptor } from 'src/shared/interceptor/logging.interceptor'
 import { Logger } from 'nestjs-pino'
+import { cleanupOpenApiDoc } from 'nestjs-zod'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true })
@@ -26,7 +26,6 @@ async function bootstrap() {
 
   // Swagger setup
   // Patch for NestJS Swagger to support Zod schemas
-  patchNestJsSwagger()
   const config = new DocumentBuilder()
     .setTitle('Ecommerce API')
     .setDescription('The API for the ecommerce application')
@@ -41,8 +40,8 @@ async function bootstrap() {
     )
     .build()
 
-  const documentFactory = () => SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('api', app, documentFactory, {
+  const documentFactory = SwaggerModule.createDocument(app, config)
+  SwaggerModule.setup('api', app, cleanupOpenApiDoc(documentFactory), {
     swaggerOptions: {
       persistAuthorization: true,
     },

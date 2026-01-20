@@ -133,10 +133,9 @@ export const CreateProductBodySchema = ProductSchema.pick({
   variants: true,
 })
   .extend({
-    categories: z.array(z.coerce.number().int().positive()),
+    categories: z.array(z.number().int().positive()),
     skus: z.array(UpsertSKUBodySchema),
   })
-  .strict()
   .superRefine(({ variants, skus }, ctx) => {
     // Kiểm tra xem số lượng SKU có hợp lệ hay không
     const skuValueArray = generateSKUs(variants)

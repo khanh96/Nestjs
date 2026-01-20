@@ -21,10 +21,14 @@ export class ProductController {
   @SkipThrottle({ short: true, long: true })
   @Get()
   @ZodSerializerDto(GetProductsResDTO)
-  list(@Query() query: GetProductsQueryDTO) {
-    return this.productService.list({
+  async list(@Query() query: GetProductsQueryDTO) {
+    const result = await this.productService.list({
       query,
     })
+    return {
+      ...result,
+      message: 'Get products successfully',
+    }
   }
 
   @SkipThrottle({ short: true, long: false })

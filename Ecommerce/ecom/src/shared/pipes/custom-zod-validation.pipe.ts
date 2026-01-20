@@ -11,13 +11,14 @@ import { ZodError } from 'zod'
 const CustomZodValidationPipe = createZodValidationPipe({
   // provide custom validation exception factory
   createValidationException: (error: ZodError) => {
-    console.log('ZodError=>', error)
+    // console.log('ZodError=>', error)
     // create custom error message
     // for each error in the ZodError
-    const errors = error.errors.map((e) => {
+
+    const errors = error.issues.map((issue) => {
       return {
-        field: e.path.join('.'),
-        message: e.message,
+        field: issue.path.join('.'),
+        message: issue.message,
       }
     })
     // TODO: Còn phải validate lỗi cho chính xác các message

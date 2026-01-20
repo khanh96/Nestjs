@@ -34,18 +34,18 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { RemoveRefreshTokenCronjob } from 'src/cronjobs/remove-refresh-token.cronjob'
 import { LoggerModule } from 'nestjs-pino'
 import pino from 'pino'
-import { GraphQLModule } from '@nestjs/graphql'
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
+// import { GraphQLModule } from '@nestjs/graphql'
+// import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 
 @Module({
   imports: [
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
-      graphiql: true,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      sortSchema: true,
-      context: ({ req, res }) => ({ req, res }),
-    }),
+    // GraphQLModule.forRoot<ApolloDriverConfig>({
+    //   driver: ApolloDriver,
+    //   graphiql: true,
+    //   autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+    //   sortSchema: true,
+    //   context: ({ req, res }) => ({ req, res }),
+    // }),
     LoggerModule.forRoot({
       pinoHttp: {
         serializers: {
@@ -63,11 +63,28 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
             }
           },
         },
-        stream: pino.destination({
-          dest: path.resolve('logs/app.log'),
-          sync: false, // Asynchronous logging
-          mkdir: true, // Create the directory if it doesn't exist
-        }),
+        autoLogging: true,
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'SYS:standard',
+            ignore: 'pid,hostname',
+          },
+        },
+        // Define multiple streams for logging
+        stream: pino.multistream([
+          // Log to console (terminal)
+          { stream: process.stdout, level: 'fatal' },
+          // Log to file
+          {
+            stream: pino.destination({
+              dest: path.resolve('logs/app.log'),
+              sync: false, // Asynchronous logging
+              mkdir: true, // Create the directory if it doesn't exist
+            }),
+          },
+        ]),
       },
     }),
     ScheduleModule.forRoot(),
