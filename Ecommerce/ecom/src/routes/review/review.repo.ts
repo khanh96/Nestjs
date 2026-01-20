@@ -52,7 +52,7 @@ export class ReviewRepository {
       page: pagination.page,
       limit: pagination.limit,
       totalPages: Math.ceil(totalItems / pagination.limit),
-    }
+    } as any
   }
 
   private async validateOrder({ orderId, userId }: { orderId: number; userId: number }) {
@@ -133,7 +133,7 @@ export class ReviewRepository {
         ...review,
         medias: reviewMedias,
       }
-    })
+    }) as any
   }
 
   async update({
@@ -198,6 +198,6 @@ export class ReviewRepository {
         ...review,
         medias: reviewMedias,
       }
-    })
+    }) as any
   }
 }

@@ -33,7 +33,7 @@ export class UserRepository {
       page: pagination.page,
       limit: pagination.limit,
       totalPages: Math.ceil(totalItems / pagination.limit),
-    }
+    } as any
   }
 
   create({ createdById, data }: { createdById: number | null; data: CreateUserBodyType }): Promise<UserType> {
@@ -42,7 +42,7 @@ export class UserRepository {
         ...data,
         createdById,
       },
-    })
+    }) as any
   }
 
   delete(
@@ -56,12 +56,12 @@ export class UserRepository {
     isHard?: boolean,
   ): Promise<UserType> {
     return isHard
-      ? this.prismaService.user.delete({
+      ? (this.prismaService.user.delete({
           where: {
             id,
           },
-        })
-      : this.prismaService.user.update({
+        }) as any)
+      : (this.prismaService.user.update({
           where: {
             id,
             deletedAt: null,
@@ -70,6 +70,6 @@ export class UserRepository {
             deletedAt: new Date(),
             deletedById,
           },
-        })
+        }) as any)
   }
 }

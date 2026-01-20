@@ -33,7 +33,7 @@ export class ManageProductResolver {
     @ActiveUser('userId') userId: number,
   ) {
     return this.manageProductService.create({
-      data: createProductInput,
+      data: createProductInput as any,
       createdById: userId,
     })
   }

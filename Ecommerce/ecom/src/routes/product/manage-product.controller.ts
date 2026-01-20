@@ -51,30 +51,30 @@ export class ManageProductController {
     })
   }
 
-  // @Put(':productId')
-  // @ZodSerializerDto(ProductDTO)
-  // @ApiParam({ name: 'productId', type: Number })
-  // update(
-  //   @Body() body: UpdateProductBodyDTO,
-  //   @Param() params: GetProductParamsDTO,
-  //   @ActiveUser() user: AccessTokenPayload,
-  // ) {
-  //   return this.manageProductService.update({
-  //     data: body,
-  //     productId: params.productId,
-  //     updatedById: user.userId,
-  //     roleNameRequest: user.roleName,
-  //   })
-  // }
+  @Put(':productId')
+  @ZodSerializerDto(ProductDTO)
+  @ApiParam({ name: 'productId', type: Number })
+  update(
+    @Body() body: UpdateProductBodyDTO,
+    @Param() params: GetProductParamsDTO,
+    @ActiveUser() user: AccessTokenPayload,
+  ) {
+    return this.manageProductService.update({
+      data: body,
+      productId: params.productId,
+      updatedById: user.userId,
+      roleNameRequest: user.roleName,
+    })
+  }
 
-  // @Delete(':productId')
-  // @ZodSerializerDto(MessageResponseDto)
-  // @ApiParam({ name: 'productId', type: Number })
-  // delete(@Param() params: GetProductParamsDTO, @ActiveUser() user: AccessTokenPayload) {
-  //   return this.manageProductService.delete({
-  //     productId: params.productId,
-  //     deletedById: user.userId,
-  //     roleNameRequest: user.roleName,
-  //   })
-  // }
+  @Delete(':productId')
+  @ZodSerializerDto(MessageResponseDto)
+  @ApiParam({ name: 'productId', type: Number })
+  delete(@Param() params: GetProductParamsDTO, @ActiveUser() user: AccessTokenPayload) {
+    return this.manageProductService.delete({
+      productId: params.productId,
+      deletedById: user.userId,
+      roleNameRequest: user.roleName,
+    })
+  }
 }

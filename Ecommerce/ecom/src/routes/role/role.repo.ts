@@ -36,7 +36,7 @@ export class RoleRepository {
       page: pagination.page,
       limit: pagination.limit,
       totalPages: Math.ceil(totalItems / pagination.limit),
-    }
+    } as any
   }
 
   findById(id: number): Promise<RoleWithPermissionsType | null> {
@@ -52,7 +52,7 @@ export class RoleRepository {
           },
         },
       },
-    })
+    }) as any
   }
 
   create({ createdById, data }: { createdById: number | null; data: CreateRoleBodyType }): Promise<RoleType> {
@@ -61,7 +61,7 @@ export class RoleRepository {
         ...data,
         createdById,
       },
-    })
+    }) as any
   }
 
   async update({
@@ -108,7 +108,7 @@ export class RoleRepository {
           },
         },
       },
-    })
+    }) as any
   }
 
   delete(
@@ -122,12 +122,12 @@ export class RoleRepository {
     isHard?: boolean,
   ): Promise<RoleType> {
     return isHard
-      ? this.prismaService.role.delete({
+      ? (this.prismaService.role.delete({
           where: {
             id,
           },
-        })
-      : this.prismaService.role.update({
+        }) as any)
+      : (this.prismaService.role.update({
           where: {
             id,
             deletedAt: null,
@@ -136,6 +136,6 @@ export class RoleRepository {
             deletedAt: new Date(),
             deletedById,
           },
-        })
+        }) as any)
   }
 }

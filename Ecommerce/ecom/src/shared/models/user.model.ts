@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 export const UserSchema = z.object({
   id: z.number(),
-  email: z.string().email(),
+  email: z.email(),
   name: z.string().min(2).max(100),
   password: z.string({ message: 'password is require' }).min(6).max(20),
   phoneNumber: z.string().min(9).max(15),
@@ -16,9 +16,9 @@ export const UserSchema = z.object({
   createdById: z.number().nullable(),
   updatedById: z.number().nullable(),
   deletedById: z.number().nullable(),
-  deletedAt: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  deletedAt: z.iso.datetime().nullable(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 })
 
 /**

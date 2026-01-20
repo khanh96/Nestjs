@@ -17,12 +17,12 @@ export class PermissionRepo {
     const take = pagination.limit // Number of items to take per page
 
     const [totalItems, data] = await Promise.all([
-      await this.prismaService.permission.count({
+      this.prismaService.permission.count({
         where: {
           deletedAt: null,
         },
       }),
-      await this.prismaService.permission.findMany({
+      this.prismaService.permission.findMany({
         where: {
           deletedAt: null,
         },
@@ -40,14 +40,14 @@ export class PermissionRepo {
       page: pagination.page,
       limit: pagination.limit,
       totalPages: Math.ceil(totalItems / pagination.limit),
-    }
+    } as any
   }
 
   async findById(id: number): Promise<PermissionType | null> {
     const result = await this.prismaService.permission.findUnique({
       where: { id: id, deletedAt: null },
     })
-    return result
+    return result as any
   }
 
   async create({
@@ -63,7 +63,7 @@ export class PermissionRepo {
         createdById,
       },
     })
-    return result
+    return result as any
   }
 
   async update({
@@ -86,7 +86,7 @@ export class PermissionRepo {
         roles: true,
       },
     })
-    return result
+    return result as any
   }
 
   async delete({
@@ -106,7 +106,7 @@ export class PermissionRepo {
           roles: true,
         },
       })
-      return result
+      return result as any
     } else {
       // If soft delete, set deletedAt and deletedById
       const result = await this.prismaService.permission.update({
@@ -119,7 +119,7 @@ export class PermissionRepo {
           roles: true,
         },
       })
-      return result
+      return result as any
     }
   }
 }

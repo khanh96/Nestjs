@@ -67,7 +67,7 @@ export class OrderRepo {
       limit,
       totalItems,
       totalPages: Math.ceil(totalItems / limit),
-    }
+    } as any
   }
 
   async create(
@@ -183,7 +183,7 @@ export class OrderRepo {
         // Tạo từng order
         const orders: CreateOrderResType['orders'] = []
         for (const item of body) {
-          const order = await tx.order.create({
+          const order = (await tx.order.create({
             data: {
               userId,
               status: OrderStatus.PENDING_PAYMENT,
@@ -222,7 +222,7 @@ export class OrderRepo {
                 }),
               },
             },
-          })
+          })) as any
           orders.push(order)
         }
 
@@ -286,7 +286,7 @@ export class OrderRepo {
     if (!order) {
       throw OrderNotFoundException
     }
-    return order
+    return order as any
   }
 
   async cancel(userId: number, orderId: number): Promise<CancelOrderResType> {
@@ -340,7 +340,7 @@ export class OrderRepo {
         return updatedOrder
       })
 
-      return updatedOrder
+      return updatedOrder as any
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
         throw OrderNotFoundException
@@ -372,7 +372,7 @@ export class OrderRepo {
         throw new BadRequestException('Only DELIVERED status is supported for stock update')
       }
 
-      const updateStatusOrder$ = await tx.order.update({
+      const updateStatusOrder$ = (await tx.order.update({
         where: {
           id: orderId,
           userId: body.userId,
@@ -382,7 +382,7 @@ export class OrderRepo {
           status: body.status,
           updatedById: userId,
         },
-      })
+      })) as any
 
       const sku$ = Promise.all(
         order.items.map((item) =>

@@ -124,7 +124,7 @@ export class ProductRepo {
       page: page,
       limit: limit,
       totalPages: Math.ceil(totalItems / limit),
-    }
+    } as any
   }
 
   findById(productId: number): Promise<ProductType | null> {
@@ -133,7 +133,7 @@ export class ProductRepo {
         id: productId,
         deletedAt: null,
       },
-    })
+    }) as any
   }
 
   getDetail({
@@ -191,7 +191,7 @@ export class ProductRepo {
           },
         },
       },
-    })
+    }) as any
   }
 
   async delete(
@@ -214,7 +214,7 @@ export class ProductRepo {
           deletedAt: null,
         },
       })
-      return product
+      return product as any
     }
 
     const [product] = await Promise.all([
@@ -239,7 +239,7 @@ export class ProductRepo {
         },
       }),
     ])
-    return product
+    return product as any
   }
 
   async create({
@@ -251,7 +251,7 @@ export class ProductRepo {
   }): Promise<GetProductDetailResType> {
     const { skus, categories, ...product } = data
 
-    return await this.prismaService.product.create({
+    return (await this.prismaService.product.create({
       data: {
         ...product,
         createdById,
@@ -294,7 +294,7 @@ export class ProductRepo {
           },
         },
       },
-    })
+    })) as any
   }
 
   async update({
@@ -396,6 +396,6 @@ export class ProductRepo {
         data: skusToCreate,
       }),
     ])
-    return product
+    return product as any
   }
 }

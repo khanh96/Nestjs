@@ -23,23 +23,23 @@ export class ShareUserRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findUserByEmailIncludeRole(email: string): Promise<UserWithRole | null> {
-    return await this.prismaService.user.findUnique({
+    return (await this.prismaService.user.findUnique({
       where: {
         email,
       },
       include: {
         role: true,
       },
-    })
+    })) as UserWithRole | null
   }
 
   async findUnique(uniqueObject: WhereUniqueUserType): Promise<UserType | null> {
-    return await this.prismaService.user.findUnique({
+    return (await this.prismaService.user.findUnique({
       where: {
         ...uniqueObject,
         deletedAt: null, // Ensure we only fetch non-deleted users
       },
-    })
+    })) as UserType | null
   }
 
   async findUniqueIncludeRolePermissions(where: WhereUniqueUserType): Promise<UserIncludeRolePermissionsType | null> {
@@ -59,11 +59,11 @@ export class ShareUserRepository {
         },
       },
     })
-    return result
+    return result as UserIncludeRolePermissionsType | null
   }
 
   async update(where: WhereUniqueUserType, data: Partial<UserType>): Promise<UserType> {
-    return await this.prismaService.user.update({
+    return (await this.prismaService.user.update({
       where: {
         id: where.id,
         deletedAt: null, // Ensure we only update non-deleted users
@@ -72,6 +72,6 @@ export class ShareUserRepository {
         ...data,
         updatedAt: new Date(), // Update the timestamp
       },
-    })
+    })) as any
   }
 }

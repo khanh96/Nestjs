@@ -26,12 +26,12 @@ export class CartRepo {
   constructor(private prismaService: PrismaService) {}
 
   private async checkExistingCartItem(cartItemId: number, skuId: number): Promise<CartItemType | null> {
-    const cartItem = await this.prismaService.cartItem.findFirst({
+    const cartItem = (await this.prismaService.cartItem.findFirst({
       where: {
         id: cartItemId,
         skuId,
       },
-    })
+    })) as any
     if (cartItem === null) throw CartItemNotFoundException
     return cartItem
   }
@@ -86,7 +86,7 @@ export class CartRepo {
     ) {
       throw ProductNotFoundException
     }
-    return sku
+    return sku as any
   }
 
   async list({
@@ -100,7 +100,7 @@ export class CartRepo {
     limit: number
     page: number
   }): Promise<any> {
-    const cartItems = await this.prismaService.cartItem.findMany({
+    const cartItems = (await this.prismaService.cartItem.findMany({
       where: {
         userId,
         sku: {
@@ -130,7 +130,7 @@ export class CartRepo {
       orderBy: {
         updatedAt: 'desc',
       },
-    })
+    })) as any
 
     const groupMap = new Map<number, CartItemDetailType>()
     for (const cartItem of cartItems) {
@@ -295,7 +295,7 @@ export class CartRepo {
         skuId: body.skuId,
         quantity: body.quantity,
       },
-    })
+    }) as any
   }
 
   async update({
@@ -332,7 +332,7 @@ export class CartRepo {
           throw NotFoundCartItemException
         }
         throw error
-      })
+      }) as any
   }
 
   delete(userId: number, body: DeleteCartBodyType): Promise<{ count: number }> {

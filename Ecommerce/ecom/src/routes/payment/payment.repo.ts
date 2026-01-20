@@ -92,7 +92,7 @@ export class PaymentRepository {
       const userId = payment.orders[0].userId
       const { orders } = payment
       // Tính số tiền của payment đó.
-      const totalPrice = this.getTotalPrice(orders)
+      const totalPrice = this.getTotalPrice(orders as any)
       // Kiểm tra số tiền khớp hay không
       if (totalPrice !== body.transferAmount) {
         throw new BadRequestException(`Price not match, expected ${totalPrice} but got ${body.transferAmount}`)
@@ -100,15 +100,15 @@ export class PaymentRepository {
 
       // 3. Cập nhật trạng thái payment thành công và các đơn hàng liên quan thành PENDING_PICKUP (nếu tất cả ok)
       await Promise.all([
-        await tx.payment.update({
+        (await tx.payment.update({
           where: {
             id: paymentId,
           },
           data: {
             status: PaymentStatus.SUCCESS,
           },
-        }),
-        await tx.order.updateMany({
+        })) as any,
+        (await tx.order.updateMany({
           where: {
             id: {
               in: orders.map((order) => order.id),
@@ -117,7 +117,7 @@ export class PaymentRepository {
           data: {
             status: OrderStatus.PENDING_PICKUP,
           },
-        }),
+        })) as any,
         this.paymentProducer.removeJob(paymentId),
       ])
       return userId

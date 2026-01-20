@@ -72,8 +72,8 @@ export const RefreshTokenSchema = z.object({
   token: z.string().max(1000),
   userId: z.number().positive(),
   deviceId: z.number().positive(),
-  expiresAt: z.date(),
-  createdAt: z.date(),
+  expiresAt: z.iso.datetime(),
+  createdAt: z.iso.datetime(),
 })
 
 export const LogoutBodySchema = z.object({
@@ -83,7 +83,7 @@ export const LogoutBodySchema = z.object({
 export const VerificationCodeSchema = z
   .object({
     id: z.number(),
-    email: z.string().email(),
+    email: z.email(),
     code: z.string().length(6),
     type: z.enum([
       VerificationCode.REGISTER,
@@ -91,8 +91,8 @@ export const VerificationCodeSchema = z
       VerificationCode.LOGIN,
       VerificationCode.DISABLE_2FA,
     ]),
-    expiresAt: z.date(),
-    createdAt: z.date(),
+    expiresAt: z.iso.datetime(),
+    createdAt: z.iso.datetime(),
   })
   .strict()
 
@@ -106,16 +106,16 @@ export const DeviceSchema = z
     id: z.number(),
     userAgent: z.string(),
     ip: z.string(),
-    lastActive: z.date(),
+    lastActive: z.iso.datetime(),
     isActive: z.boolean(),
     userId: z.number().positive(),
-    createdAt: z.date(),
+    createdAt: z.iso.datetime(),
   })
   .strict()
 
 export const ForgotPasswordBodySchema = z
   .object({
-    email: z.string().email(),
+    email: z.email(),
     code: z.string().length(6),
     password: z.string().min(6).max(20),
     confirmPassword: z.string().min(6).max(20),

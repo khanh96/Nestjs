@@ -84,7 +84,7 @@ export class LanguageService {
         data?: Partial<LanguageType>
       } = { id: languageId, isHard }
       if (!isHard) {
-        removeParams = { id: languageId, isHard, data: { deletedById: userId, deletedAt: new Date() } }
+        removeParams = { id: languageId, isHard, data: { deletedById: userId, deletedAt: new Date().toISOString() } }
       }
       const result = await this.languageRepository.remove(removeParams)
 

@@ -17,7 +17,7 @@ export class BrandRepo {
   async list(pagination: PaginationQueryType, languageId: string): Promise<GetBrandsResType> {
     const skip = (pagination.page - 1) * pagination.limit
     const take = pagination.limit
-    const [totalItems, data] = await Promise.all([
+    const [totalItems, data] = (await Promise.all([
       this.prismaService.brand.count({
         where: {
           deletedAt: null,
@@ -38,7 +38,7 @@ export class BrandRepo {
         skip,
         take,
       }),
-    ])
+    ])) as any
     return {
       data,
       totalItems,
@@ -59,7 +59,7 @@ export class BrandRepo {
           where: languageId === ALL_LANGUAGES_CODE ? { deletedAt: null } : { deletedAt: null, languageId },
         },
       },
-    })
+    }) as any
   }
 
   create({
@@ -79,10 +79,10 @@ export class BrandRepo {
           where: { deletedAt: null },
         },
       },
-    })
+    }) as any
   }
 
-  async update({
+  update({
     id,
     updatedById,
     data,
@@ -105,7 +105,7 @@ export class BrandRepo {
           where: { deletedAt: null },
         },
       },
-    })
+    }) as any
   }
 
   delete(
@@ -119,12 +119,12 @@ export class BrandRepo {
     isHard?: boolean,
   ): Promise<BrandType> {
     return isHard
-      ? this.prismaService.brand.delete({
+      ? (this.prismaService.brand.delete({
           where: {
             id,
           },
-        })
-      : this.prismaService.brand.update({
+        }) as any)
+      : (this.prismaService.brand.update({
           where: {
             id,
             deletedAt: null,
@@ -133,6 +133,6 @@ export class BrandRepo {
             deletedAt: new Date(),
             deletedById,
           },
-        })
+        }) as any)
   }
 }

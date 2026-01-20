@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { DeviceType, RefreshTokenType, RegisterBodyType, VerificationCodeSchemaType } from 'src/routes/auth/auth.model'
 import { VerificationCodeType } from 'src/shared/constants/auth.constant'
+import { SerializeAll } from 'src/shared/decorators/serialize.decorator'
 import { RoleType } from 'src/shared/models/role.model'
 import { UserType } from 'src/shared/models/user.model'
 import { PrismaService } from 'src/shared/services/prisma/prisma.service'
@@ -20,6 +21,7 @@ type ResUserType = Omit<UserType, 'password' | 'totpSecret'>
 type CreateRefreshTokenType = Omit<RefreshTokenType, 'id' | 'createdAt'>
 
 @Injectable()
+@SerializeAll()
 export class AuthRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
@@ -48,13 +50,13 @@ export class AuthRepository {
     //     }
     //   }, 2000)
     // })
-    return await this.prismaService.user.create({
+    return (await this.prismaService.user.create({
       data: user,
       omit: {
         password: true,
         totpSecret: true,
       },
-    })
+    })) as any
   }
 
   async createUserIncludeRole(
@@ -64,18 +66,18 @@ export class AuthRepository {
       role: RoleType
     }
   > {
-    return await this.prismaService.user.create({
+    return (await this.prismaService.user.create({
       data: user,
       include: {
         role: true,
       },
-    })
+    })) as any
   }
 
   async createVerificationCode(
     payload: Pick<VerificationCodeSchemaType, 'email' | 'code' | 'expiresAt' | 'type'>,
   ): Promise<VerificationCodeSchemaType> {
-    return await this.prismaService.verificationCode.upsert({
+    return (await this.prismaService.verificationCode.upsert({
       where: {
         email_code_type: {
           email: payload.email,
@@ -89,13 +91,13 @@ export class AuthRepository {
         type: payload.type,
       },
       create: payload,
-    })
+    })) as any
   }
 
   async findUniqueVerificationCode(
     uniqueObject: { id: number } | { email: string; code: string; type: VerificationCodeType },
   ) {
-    return await this.prismaService.verificationCode.findUnique({
+    return (await this.prismaService.verificationCode.findUnique({
       where: {
         id: 'id' in uniqueObject ? uniqueObject.id : undefined,
         email_code_type:
@@ -103,47 +105,52 @@ export class AuthRepository {
             ? { email: uniqueObject.email, code: uniqueObject.code, type: uniqueObject.type }
             : undefined,
       },
-    })
+    })) as any
   }
 
   async deleteVerificationCode(
     where: Pick<VerificationCodeSchemaType, 'id'> | Pick<VerificationCodeSchemaType, 'code' | 'email' | 'type'>,
   ): Promise<VerificationCodeSchemaType> {
-    return await this.prismaService.verificationCode.delete({
+    return (await this.prismaService.verificationCode.delete({
       where: {
         id: 'id' in where ? where.id : undefined,
         email_code_type: 'email' in where ? { email: where.email, code: where.code, type: where.type } : undefined,
       },
-    })
+    })) as any
   }
 
   async createDevice(
     payload: Pick<DeviceType, 'userAgent' | 'ip' | 'userId'> & Partial<Pick<DeviceType, 'isActive' | 'lastActive'>>,
   ): Promise<DeviceType> {
-    return await this.prismaService.device.create({
+    return (await this.prismaService.device.create({
       data: payload,
-    })
+    })) as any
   }
 
   async updateDevice(deviceId: number, payload: Partial<DeviceType>): Promise<DeviceType> {
-    return await this.prismaService.device.update({
+    return (await this.prismaService.device.update({
       where: {
         id: deviceId,
       },
       data: payload,
-    })
+    })) as any
   }
 
-  async createRefreshToken(payload: CreateRefreshTokenType): Promise<RefreshTokenType> {
-    return await this.prismaService.refreshToken.create({
+  async createRefreshToken(payload: {
+    expiresAt: Date
+    userId: number
+    token: string
+    deviceId: number
+  }): Promise<RefreshTokenType> {
+    return (await this.prismaService.refreshToken.create({
       data: payload,
-    })
+    })) as any
   }
 
   async findUniqueRefreshTokenIncludeUserRole(
     refreshToken: string,
   ): Promise<RefreshTokenType & { user: UserType & { role: RoleType } }> {
-    return await this.prismaService.refreshToken.findUniqueOrThrow({
+    return (await this.prismaService.refreshToken.findUniqueOrThrow({
       where: {
         token: refreshToken,
       },
@@ -154,14 +161,14 @@ export class AuthRepository {
           },
         },
       },
-    })
+    })) as any
   }
 
   async deleteRefreshToken(refreshToken: string): Promise<RefreshTokenType> {
-    return await this.prismaService.refreshToken.delete({
+    return (await this.prismaService.refreshToken.delete({
       where: {
         token: refreshToken,
       },
-    })
+    })) as any
   }
 }

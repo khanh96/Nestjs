@@ -17,7 +17,7 @@ export class BrandTranslationRepo {
         id,
         deletedAt: null,
       },
-    })
+    }) as any
   }
 
   create({
@@ -32,7 +32,7 @@ export class BrandTranslationRepo {
         ...data,
         createdById,
       },
-    })
+    }) as any
   }
 
   async update({
@@ -53,7 +53,7 @@ export class BrandTranslationRepo {
         ...data,
         updatedById,
       },
-    })
+    }) as any
   }
 
   delete(
@@ -67,12 +67,12 @@ export class BrandTranslationRepo {
     isHard?: boolean,
   ): Promise<BrandTranslationType> {
     return isHard
-      ? this.prismaService.brandTranslation.delete({
+      ? (this.prismaService.brandTranslation.delete({
           where: {
             id,
           },
-        })
-      : this.prismaService.brandTranslation.update({
+        }) as any)
+      : (this.prismaService.brandTranslation.update({
           where: {
             id,
             deletedAt: null,
@@ -81,6 +81,6 @@ export class BrandTranslationRepo {
             deletedAt: new Date(),
             deletedById,
           },
-        })
+        }) as any)
   }
 }
