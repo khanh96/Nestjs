@@ -2,11 +2,127 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Product {
-  id: String!
+type BrandIncludeTranslation {
+  brandTranslations: [BrandTranslation!]!
+  createdAt: DateTime!
+  createdById: Int!
+  deletedAt: DateTime
+  deletedById: Int
+  id: Int!
+  logo: String!
   name: String!
+  updatedAt: DateTime!
+  updatedById: Int
+}
+
+type BrandTranslation {
+  brandId: Int!
+  createdAt: DateTime!
+  createdById: Int!
+  deletedAt: DateTime
+  deletedById: Int
+  description: String!
+  id: Int!
+  languageId: String!
+  name: String!
+  updatedAt: DateTime!
+  updatedById: Int
+}
+
+type CategoryIncludeTranslation {
+  categoryTranslations: [CategoryTranslation!]!
+  createdAt: DateTime!
+  createdById: Int!
+  deletedAt: DateTime
+  deletedById: Int
+  id: Int!
+  logo: String
+  name: String!
+  parentCategoryId: Int
+  updatedAt: DateTime!
+  updatedById: Int
+}
+
+type CategoryTranslation {
+  categoryId: Int!
+  createdAt: DateTime!
+  createdById: Int!
+  deletedAt: DateTime
+  deletedById: Int
+  description: String!
+  id: Int!
+  languageId: String!
+  name: String!
+  updatedAt: DateTime!
+  updatedById: Int
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type GetProducts {
+  data: [ProductIncludeTranslation!]!
+  limit: Int!
+  page: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type ProductIncludeTranslation {
+  basePrice: Float!
+  brandId: Int!
+  createdAt: DateTime!
+  createdById: Int!
+  deletedAt: DateTime
+  deletedById: Int
+  id: Int!
+  images: [String!]!
+  name: String!
+  productTranslations: [ProductTranslation!]!
+  publishedAt: DateTime
+  updatedAt: DateTime!
+  updatedById: Int
+  variants: [ProductVariant!]!
+  virtualPrice: Float!
+}
+
+type ProductTranslation {
+  createdAt: DateTime!
+  createdById: Int!
+  deletedAt: DateTime
+  deletedById: Int
+  description: String!
+  id: Int!
+  languageId: String!
+  name: String!
+  productId: Int!
+  updatedAt: DateTime!
+  updatedById: Int
+}
+
+type ProductVariant {
+  options: [String!]!
+  value: String!
 }
 
 type Query {
-  findAll: [Product!]!
+  products: [GetProducts!]!
+  test: String!
+}
+
+type SKU {
+  createdAt: DateTime!
+  createdById: Int!
+  deletedAt: DateTime
+  deletedById: Int
+  id: Int!
+  image: String!
+  price: Float!
+  productId: Int!
+  stock: Int!
+  updatedAt: DateTime!
+  updatedById: Int
+  value: String!
 }
